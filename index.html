@@ -1483,7 +1483,7 @@ const LEADERSHIP_ROLES = ['admin','analista','regional','zonal'];
 const DEMO_USERS = [
   {id:1, nombre:'Oliver González',  correo:'oliver@lcp.mx',   sucursal:null,           rol:'regional', password:'lcp2026'},
   {id:2, nombre:'Saúl Ibrahim',     correo:'ibrahim@lcp.mx',  sucursal:'Andares',      rol:'analista', password:'lcp2026'},
-  {id:3, nombre:'Evelyn Landeros',  correo:'evelyn@lcp.mx',   sucursal:'Plaza Patria', rol:'gerente',  password:'lcp2026'},
+  {id:3, nombre:'Evelyn Landeros',  correo:'evelyn@lcp.mx',   sucursal:'Galerias Guadalajara', rol:'gerente',  password:'lcp2026'},
   {id:4, nombre:'Carlos Méndez',    correo:'carlos@lcp.mx',   sucursal:'Midtown',      rol:'gerente',  password:'lcp2026'},
   {id:5, nombre:'Demo Admin',       correo:'admin@demo.com',  sucursal:null,           rol:'admin',    password:'demo'},
   {id:6, nombre:'Demo Zonal',       correo:'zonal@demo.com',  sucursal:null,           rol:'zonal',    password:'demo'},
@@ -1975,19 +1975,47 @@ function mostrarFormAdmin(idx){
   const addBtn=document.createElement('button');addBtn.className='admin-tab-btn admin-tab-add'+(idx===-1?' active':'');addBtn.textContent=idx===-1?'+ Nuevo (sin guardar)':'+ Nuevo';addBtn.onclick=()=>mostrarFormAdmin(-1);tabs.appendChild(addBtn);
   $('admin-aviso-delete-wrap').style.display=idx===-1?'none':'';
 }
-async function guardarAviso(){
-  const data={tag:$('af-tag').value.trim(),fecha:$('af-fecha').value.trim(),texto:$('af-texto').value.trim(),fechaLimite:$('af-fecha-limite').value||'',fechaBorrado:$('af-fecha-borrado').value||'',critico:$('af-critico').checked};
-  if(!data.tag&&!data.texto){mostrarToast('⚠️ El aviso necesita al menos una etiqueta o texto.');return;}
+async function guardarAviso() {
+  const data = {
+    tag:          $('af-tag').value.trim(),
+    fecha:        $('af-fecha').value.trim(),
+    texto:        $('af-texto').value.trim(),
+    fechalimite:  $('af-fecha-limite').value || '',   // Sincronizado con Code.gs
+    fechaborrado: $('af-fecha-borrado').value || '', // Sincronizado con Code.gs
+    critico:      $('af-critico').checked
+  };
+  
+  if (!data.tag && !data.texto) { 
+    mostrarToast('⚠️ El aviso necesita al menos una etiqueta o texto.'); 
+    return; 
+  }
+
   let nuevoAviso;
-  if(adminAvisoIdx===-1){nuevoAviso={id:generateId(),creado:Date.now(),...data};avisos.push(nuevoAviso);}
-  else{avisos[adminAvisoIdx]={...avisos[adminAvisoIdx],...data};nuevoAviso=avisos[adminAvisoIdx];}
+  if (adminAvisoIdx === -1) {
+    nuevoAviso = { id: generateId(), creado: Date.now(), ...data };
+    avisos.push(nuevoAviso);
+  } else {
+    avisos[adminAvisoIdx] = { ...avisos[adminAvisoIdx], ...data };
+    nuevoAviso = avisos[adminAvisoIdx];
+  }
   saveAvisos();
-  if(API_URL){const r=await apiCall('saveAviso',{aviso:nuevoAviso});if(r.ok&&r.aviso){const i=avisos.findIndex(a=>a.id===r.aviso.id);if(i>=0)avisos[i]=r.aviso;saveAvisos();}}
-  $('admin-overlay').classList.remove('visible');resetDeleteBtn();
-  renderAvisos();renderAdminAvisos();
-  mostrarToast('✓ Aviso guardado'+(data.critico&&API_URL?' · newsletter enviado':''));
-  if(data.critico)pushNotif('🚨 Aviso crítico publicado','Se notificó a todos los gerentes.');
-  if(!avHovered)iniciarAutoplay();
+
+  if (API_URL) {
+    const r = await apiCall('saveAviso', nuevoAviso); 
+    if (r.ok && r.aviso) {
+      const i = avisos.findIndex(a => a.id === r.aviso.id);
+      if (i >= 0) avisos[i] = r.aviso;
+      saveAvisos();
+    }
+  }
+
+  $('admin-overlay').classList.remove('visible');
+  resetDeleteBtn();
+  renderAvisos();
+  renderAdminAvisos();
+  mostrarToast('✓ Aviso guardado');
+  if (!avHovered) iniciarAutoplay();
+}
 }
 function pedirConfirmarBorrar(){if(adminAvisoIdx===-1||adminAvisoIdx>=avisos.length)return;adminPendingDelete=true;$('admin-aviso-delete').style.display='none';$('admin-aviso-delete-confirm').style.display='';$('admin-aviso-delete-cancel').style.display='';}
 function cancelarConfirmarBorrar(){resetDeleteBtn();}
