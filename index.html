@@ -2016,7 +2016,6 @@ async function guardarAviso() {
   mostrarToast('✓ Aviso guardado');
   if (!avHovered) iniciarAutoplay();
 }
-}
 function pedirConfirmarBorrar(){if(adminAvisoIdx===-1||adminAvisoIdx>=avisos.length)return;adminPendingDelete=true;$('admin-aviso-delete').style.display='none';$('admin-aviso-delete-confirm').style.display='';$('admin-aviso-delete-cancel').style.display='';}
 function cancelarConfirmarBorrar(){resetDeleteBtn();}
 function resetDeleteBtn(){adminPendingDelete=false;const d=$('admin-aviso-delete');if(d)d.style.display='';const c=$('admin-aviso-delete-confirm');if(c)c.style.display='none';const x=$('admin-aviso-delete-cancel');if(x)x.style.display='none';}
