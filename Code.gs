@@ -30,6 +30,7 @@ function doGet(e) {
       case "juntas":     data = getJuntas();     break;
       case "entregas":   data = getEntregas(e.parameter.semana); break;
       case "sucursales": data = getSucursales(); break;
+      case "getConsolidado": data = getConsolidado(e.parameter.semana); break;
       case "ping":       data = { ok: true, ts: new Date().toISOString() }; break;
       default:           return resp({ error: "Acción desconocida: " + action }, 400);
     }
@@ -55,6 +56,7 @@ function doPost(e) {
       case "deleteAviso":   return resp(deleteAviso(body));
       case "saveJunta":     return resp(saveJunta(body));
       case "saveEntrega":   return resp(saveEntrega(body));
+      case "saveConsolidado":return resp(saveConsolidado(body));
       case "uploadFile":    return resp(uploadFile(body));
       default:              return resp({ error: "Acción desconocida: " + action }, 400);
     }
@@ -370,4 +372,46 @@ function uploadFile(payload) {
     fileId: file.id,
     url: file.alternateLink
   };
+}
+
+// ----------------------------------------------------------------
+//  CONSOLIDADO
+// ----------------------------------------------------------------
+
+function getConsolidado(semana) {
+  const ss = getSheet(TAB.SUCURSALES);
+  if(!ss) return [];
+  const rows = sheetData(TAB.SUCURSALES);
+  return rows.filter(r => r.semana === semana);
+}
+
+function saveConsolidado({ semana, data, token }) {
+  requireEncargado(token);
+  const ss = getSheet(TAB.SUCURSALES);
+  if(!ss) return { ok: false, error: "Pesta�a Sucursales no existe" };
+  
+  const headers = ss.getRange(1, 1, 1, ss.getLastColumn()).getValues()[0];
+  const allData = ss.getDataRange().getValues();
+  
+  data.forEach(row => {
+    let rowIndex = -1;
+    for(let i=1; i<allData.length; i++){
+      if(allData[i][0] === semana && allData[i][1] === row.nombre) {
+        rowIndex = i + 1;
+        break;
+      }
+    }
+    
+    if(rowIndex > 0) {
+      ss.getRange(rowIndex, 3).setValue(row.meta);
+      ss.getRange(rowIndex, 4).setValue(row.venta);
+      ss.getRange(rowIndex, 5).setValue(row.acumulado);
+      ss.getRange(rowIndex, 6).setValue(row.trx);
+      ss.getRange(rowIndex, 7).setValue(row.entrego);
+    } else {
+      ss.appendRow([semana, row.nombre, row.meta, row.venta, row.acumulado, row.trx, row.entrego]);
+    }
+  });
+  
+  return { ok: true };
 }

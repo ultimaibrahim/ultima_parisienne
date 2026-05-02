@@ -425,7 +425,8 @@ async function handleFileUpload(e) {
          fileData: base64,
          fileName: file.name,
          mimeType: file.type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-         sucursal: currentUser.sucursal
+         sucursal: currentUser.sucursal,
+         semana: document.getElementById('semana-label').textContent.trim()
        });
        
        if(res.ok) {
@@ -439,7 +440,7 @@ async function handleFileUpload(e) {
        }
     } else {
        setTimeout(() => {
-         mostrarToast('✓ (Demo) Archivo subido y validado');
+         mostrarToast('✓ Archivo validado localmente');
          if(currentUploadAction === 'Reporte de Ventas') {
            const d = getChecklistData();
            if(!d[currentUser.sucursal]) alternarMiEntrega();
@@ -747,14 +748,37 @@ SUCURSALES.forEach(nombre=>{
     <td class="td-badge"><span class="badge badge-gray">Sin dato</span></td>`;
   tbody.appendChild(tr);
 });
-function guardarConsolidadoLocal(){
+async function guardarConsolidadoLocal(){
+  const data = getTablaData();
+  const sem = document.getElementById('semana-label').textContent.trim();
+  if(API_URL) {
+    apiCall('saveConsolidado', { semana: sem, data: data });
+  }
   const data = getTablaData();
   const sem = $('semana-label').textContent.trim();
   const allData = JSON.parse(localStorage.getItem('lcp_gdl_consolidado') || '{}');
   allData[sem] = data;
   localStorage.setItem('lcp_gdl_consolidado', JSON.stringify(allData));
 }
-function cargarConsolidadoLocal(){
+async function cargarConsolidadoLocal(){
+  const sem = document.getElementById('semana-label').textContent.trim();
+  if (API_URL) {
+    const res = await apiGet('getConsolidado&semana=' + encodeURIComponent(sem));
+    if (res.ok && res.data.length > 0) {
+      document.querySelectorAll('#tabla-body tr').forEach((tr,i)=>{
+        const rowData = res.data.find(r => r.nombre === SUCURSALES[i]);
+        if(rowData){
+          if(rowData.meta) tr.querySelector('[data-col="meta"]').value = rowData.meta;
+          if(rowData.venta) tr.querySelector('[data-col="venta"]').value = rowData.venta;
+          if(rowData.acumulado) tr.querySelector('[data-col="acumulado"]').value = rowData.acumulado;
+          if(rowData.trx) tr.querySelector('[data-col="trx"]').value = rowData.trx;
+          tr.querySelector('[data-col="entrego"]').value = String(rowData.entrego).toLowerCase()==='true' ? "entregado" : "pendiente";
+          rc(tr.querySelector('[data-col="meta"]'), false);
+        }
+      });
+      return;
+    }
+  }
   const sem = $('semana-label').textContent.trim();
   const allData = JSON.parse(localStorage.getItem('lcp_gdl_consolidado') || '{}');
   const data = allData[sem];
