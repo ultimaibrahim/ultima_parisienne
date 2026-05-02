@@ -1,0 +1,71 @@
+<div class="hero anim anim-1">
+      <div class="hero-eyebrow">Portal interno · Región Guadalajara</div>
+      <h1>Centro de operaciones<br><em>GDL</em></h1>
+      <p>Todo lo que necesitas para reportar, consultar y mantenerte alineado — en un solo lugar.</p>
+    </div>
+
+    <div class="stat-row anim anim-2">
+      <div class="stat-card">
+        <div class="stat-label">Sucursales región</div>
+        <div class="stat-value">9</div>
+        <div class="stat-sub">GDL activas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Formatos disponibles</div>
+        <div class="stat-value">4</div>
+        <div class="stat-sub">Ventas · Inv · Inc · Hor</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Regional manager</div>
+        <div class="stat-value" style="font-size:22px">Oliver</div>
+        <div class="stat-sub">Responsable de región</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Versión del portal</div>
+        <div class="stat-value" id="stat-version" style="font-size:20px;font-family:'DM Sans',sans-serif;font-weight:700">v0.5.0</div>
+        <div class="stat-sub">Beta · Abr 2026</div>
+      </div>
+    </div>
+
+    <!-- Carrusel de avisos -->
+    <div class="avisos-card anim anim-3" id="avisos-card-el" onmouseenter="hoverAvisos(true)" onmouseleave="hoverAvisos(false)">
+      <div class="avisos-header">
+        <div class="avisos-header-left">
+          <div class="aviso-dot" aria-hidden="true"></div>
+          <span class="avisos-titulo">Avisos de la región</span>
+          <span class="avisos-nuevos-pill hidden" id="avisos-nuevos-pill">✨ <span id="avisos-nuevos-count">0</span> nuevos</span>
+          <span class="avisos-paused-badge" id="avisos-paused-badge">⏸ pausado</span>
+        </div>
+        <div class="avisos-nav">
+          <button class="aviso-arrow" id="av-prev" onclick="moverAviso(-1)" disabled aria-label="Aviso anterior" data-testid="aviso-prev">‹</button>
+          <span class="aviso-counter" id="av-counter">0 / 0</span>
+          <button class="aviso-arrow" id="av-next" onclick="moverAviso(1)" aria-label="Siguiente aviso" data-testid="aviso-next">›</button>
+        </div>
+      </div>
+      <div class="avisos-track" id="avisos-track" aria-live="polite"></div>
+      <div class="avisos-footer">
+        <div class="avisos-dots" id="avisos-dots"></div>
+        <div class="avisos-footer-actions">
+          <button class="btn-historico" onclick="abrirHistorico()" data-testid="btn-historico">📚 Avisos anteriores</button>
+          <button class="admin-toggle-btn" id="btn-editar-avisos" onclick="abrirAdmin()" style="display:none;" data-testid="btn-editar-avisos">⚙ Editar avisos</button>
+        </div>
+      </div>
+      <div class="aviso-progress-bar" aria-hidden="true">
+        <div class="aviso-progress-fill" id="aviso-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="notice notice-info anim anim-4">
+      <span class="notice-icon">ℹ️</span>
+      <div>Portal de <strong>solo lectura</strong>. Los archivos viven en Google Drive — los links llevan directo a tu carpeta. Problemas: avísale a Saúl Ibrahim.</div>
+    </div>
+
+    <div class="checklist-wrap anim anim-5" id="checklist-entrega" style="display:none;">
+      <div class="checklist-header">
+        <span class="checklist-title">Entrega semanal</span>
+        <span class="checklist-meta" id="checklist-meta">0 / 9 entregaron</span>
+      </div>
+      <div class="checklist-grid" id="checklist-grid"></div>
+    </div>
+
+    <!-- ══ MISIÓN DEL PORTAL REMOVIDA PARA LIMPIEZA VISUAL ══ -->

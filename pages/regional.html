@@ -1,0 +1,35 @@
+<div class="section-title anim anim-1">Consolidado Regional</div>
+    <div class="section-desc anim anim-2" id="regional-desc">Haz clic en cualquier celda para editar. % avance, ticket y semáforo se calculan automáticamente.</div>
+    <div class="notice notice-warn anim anim-2">
+      <span class="notice-icon">⚠️</span>
+      <div>Tabla manual. Para información oficial siempre consultar Drive. Los datos de aquí alimentan el Dashboard.</div>
+    </div>
+    <div class="table-wrap anim anim-3">
+      <div class="table-header">
+        <span class="table-header-title">Semana en curso</span>
+        <div style="text-align:right;line-height:1.4;">
+          <span class="table-header-meta" id="semana-label">—</span><br>
+          <span class="table-header-meta" id="tabla-update-meta" style="font-size:11px;color:var(--sage)"></span>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Sucursal</th><th>Meta ($)</th><th>Venta neta ($)</th>
+              <th>% Avance</th><th>Acum. Mes ($)</th><th>TRX</th><th>Ticket (Sem)</th><th>Tendencia</th><th>Entregó</th><th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="notice notice-info anim anim-4">
+      <span class="notice-icon">💡</span>
+      <div>
+        <strong style="color:#2e7d32">● Verde</strong> ≥90% ·
+        <strong style="color:#b35a00">● Ámbar</strong> 70–89% ·
+        <strong style="color:#c62828">● Rojo</strong> &lt;70% ·
+        <strong style="color:var(--text-muted)">● Gris</strong> sin dato
+      </div>
+    </div>

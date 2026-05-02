@@ -1,0 +1,90 @@
+<div class="section-title anim anim-1">Dashboard Regional</div>
+    <div class="section-desc anim anim-2">Métricas en tiempo real de las 9 sucursales GDL. Se actualiza con los datos del consolidado semanal. <span id="dash-update-meta" style="font-weight:bold;color:var(--sage)"></span></div>
+
+    <!-- KPI Row -->
+    <div class="dash-kpi-row anim anim-2">
+      <div class="kpi-card verde">
+        <div class="kpi-label">Entregas esta semana</div>
+        <div class="kpi-value" id="kpi-entregas">—</div>
+        <div class="kpi-sub" id="kpi-entregas-sub">de 9 sucursales</div>
+        <div class="kpi-bar-wrap"><div class="kpi-bar" id="kpi-bar-entregas" style="background:var(--verde);width:0%"></div></div>
+      </div>
+      <div class="kpi-card sage">
+        <div class="kpi-label">Avance vs meta prom.</div>
+        <div class="kpi-value" id="kpi-avance">—</div>
+        <div class="kpi-sub" id="kpi-avance-sub">promedio regional</div>
+        <div class="kpi-bar-wrap"><div class="kpi-bar" id="kpi-bar-avance" style="background:var(--sage);width:0%"></div></div>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-label">Ticket promedio</div>
+        <div class="kpi-value" id="kpi-ticket">—</div>
+        <div class="kpi-sub">promedio regional</div>
+        <div class="kpi-bar-wrap"><div class="kpi-bar" id="kpi-bar-ticket" style="background:var(--amber);width:0%"></div></div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-label">TRX total región</div>
+        <div class="kpi-value" id="kpi-trx">—</div>
+        <div class="kpi-sub">transacciones semana</div>
+        <div class="kpi-bar-wrap"><div class="kpi-bar" id="kpi-bar-trx" style="background:#2980b9;width:0%"></div></div>
+      </div>
+      <div class="kpi-card rojo">
+        <div class="kpi-label">Cobertura críticos</div>
+        <div class="kpi-value" id="kpi-criticos">—</div>
+        <div class="kpi-sub" id="kpi-criticos-sub">gerentes confirmaron</div>
+        <div class="kpi-bar-wrap"><div class="kpi-bar" id="kpi-bar-criticos" style="background:var(--rojo-soft);width:0%"></div></div>
+      </div>
+    </div>
+
+    <div id="dash-empty-state" style="display:none;text-align:center;padding:40px 20px;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.1);border-radius:16px;margin-top:20px;" class="anim anim-3">
+      <div style="font-size:32px;margin-bottom:12px;">📊</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;color:var(--crema);margin-bottom:8px;">Esperando datos de la semana</div>
+      <div style="font-size:13px;color:var(--text-muted);max-width:300px;margin:0 auto;line-height:1.5;">El dashboard se actualizará automáticamente cuando ingreses información en el Consolidado Regional.</div>
+      <button onclick="showSection('regional',null)" style="margin-top:16px;background:var(--sage);color:var(--crema);border:none;padding:8px 16px;border-radius:20px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;">Ir a Consolidado →</button>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="dash-charts-row anim anim-3" id="dash-charts-row">
+      <div class="dash-chart-card">
+        <div class="dash-chart-title">Venta vs Meta por sucursal</div>
+        <div class="dash-chart-sub">Semana en curso — actualizado desde el consolidado</div>
+        <div class="chart-container" style="height:240px;">
+          <canvas id="chart-ventas"></canvas>
+        </div>
+      </div>
+      <div class="dash-chart-card">
+        <div class="dash-chart-title">Cumplimiento de entregas</div>
+        <div class="dash-chart-sub">Reporte semanal de ventas</div>
+        <div class="chart-container" style="height:200px;display:flex;align-items:center;justify-content:center;">
+          <canvas id="chart-entregas" style="max-height:200px;"></canvas>
+        </div>
+        <div id="chart-entregas-legend" style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-muted);"></div>
+      </div>
+    </div>
+
+    <!-- Bottom Row: Heatmap + Ranking -->
+    <div class="dash-bottom-row anim anim-4" id="dash-bottom-row">
+      <div class="dash-chart-card">
+        <div class="dash-chart-title">Lecturas de avisos críticos</div>
+        <div class="dash-chart-sub">Por sucursal · últimas semanas</div>
+        <div id="heatmap-container" style="margin-top:8px;"></div>
+      </div>
+      <div class="dash-chart-card">
+        <div class="dash-chart-title">Ranking — % vs Meta</div>
+        <div class="dash-chart-sub">Semana en curso · mayor a menor</div>
+        <div class="ranking-list" id="ranking-list" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <!-- KPI sugerido: Tendencia -->
+    <div class="dash-chart-card anim anim-5" id="dash-tendencia-row">
+      <div class="dash-chart-title">Tendencia de venta neta</div>
+      <div class="dash-chart-sub">Últimas 6 semanas — región GDL</div>
+      <div class="chart-container" style="height:180px;">
+        <canvas id="chart-tendencia"></canvas>
+      </div>
+    </div>
+
+    <div class="notice notice-warn anim anim-5" style="margin-top:16px;">
+      <span class="notice-icon">⚠️</span>
+      <div>Los datos se alimentan del <strong>Consolidado Regional</strong>. Edítalos ahí para actualizar las gráficas. Cuando conectes Apps Script, se sincronizarán automáticamente.</div>
+    </div>

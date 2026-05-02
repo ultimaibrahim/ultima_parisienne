@@ -1,0 +1,56 @@
+<!-- Hero mi sucursal — solo gerentes -->
+    <div id="mi-suc-block" style="display:none;">
+      <div class="mi-suc-hero anim anim-1">
+        <div class="mi-suc-hero-eyebrow">Tu sucursal</div>
+        <h2 id="mi-suc-titulo">—</h2>
+        <div class="mi-suc-hero-sub" id="mi-suc-sub">Sube tus reportes semanales y consulta los archivos de tu sucursal aquí mismo.</div>
+        <div class="mi-suc-status-row">
+          <span class="mi-suc-status-pill pendiente" id="mi-suc-status-pill">
+            <span class="dot"></span><span id="mi-suc-status-text">Reporte de esta semana: pendiente</span>
+          </span>
+          <button class="mi-suc-btn mi-suc-btn-ghost" style="background:rgba(255,255,255,.1);color:var(--crema);border:1px solid rgba(255,255,255,.25);" onclick="alternarMiEntrega()" data-testid="toggle-mi-entrega">
+            ✓ Marcar como entregado
+          </button>
+        </div>
+      </div>
+      <div class="mi-suc-actions-grid anim anim-2" id="mi-suc-actions-grid"></div>
+      <div class="notice notice-info anim anim-3" id="mi-suc-instrucciones">
+        <span class="notice-icon">📋</span>
+        <div>Cada lunes antes de las 10:00 AM sube tu <strong>Reporte Semanal de Ventas</strong>.
+        Formato: <span class="tag-formato">VentaSemanal_<span id="mi-suc-codigo-fmt">[SUC]</span>_[MES][AÑO]_S[#].xlsx</span>.
+        ¿Dudas? Escríbele a Saúl Ibrahim.</div>
+      </div>
+    </div>
+
+    <!-- Bloque completo — leadership -->
+    <div id="full-suc-block">
+      <div class="section-title anim anim-1">Sucursales GDL</div>
+      <div class="section-desc anim anim-2">Links directos a las carpetas en Drive. Sube tus archivos en la carpeta correcta.</div>
+      <div class="suc-topbar anim anim-2">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" type="text" placeholder="Buscar sucursal..." oninput="filtrarSucursales(this.value)" autocomplete="off" aria-label="Buscar sucursal" data-testid="search-input">
+        </div>
+        <button class="btn-instrucciones-global" onclick="toggleInstrucciones(this)" data-testid="btn-instrucciones">📖 Instrucciones</button>
+      </div>
+      <div class="instrucciones-panel" id="instrucciones-panel">
+        <div class="instrucciones-panel-header">
+          <div class="instrucciones-panel-title">Instrucciones de uso</div>
+          <button class="btn-cerrar" onclick="cerrarInstrucciones()">✕ Cerrar</button>
+        </div>
+        <div class="instrucciones-grid">
+          <div class="instruccion-card"><div class="instruccion-header"><div class="instruccion-num">1</div><div class="instruccion-title">¿Qué archivos subo?</div></div><div class="instruccion-body">Cada semana subes <strong>un solo archivo</strong>: el reporte semanal de ventas. Llénalo diariamente y súbelo cada lunes.</div></div>
+          <div class="instruccion-card"><div class="instruccion-header"><div class="instruccion-num">2</div><div class="instruccion-title">¿Cómo lo nombro?</div></div><div class="instruccion-body">Formato exacto:<br><br><span class="tag-formato">VentaSemanal_[SUC]_[MES][AÑO]_S[#].xlsx</span><br><br>Ej: <span class="tag-formato">VentaSemanal_AND_ABR2026_S3.xlsx</span></div></div>
+          <div class="instruccion-card"><div class="instruccion-header"><div class="instruccion-num">3</div><div class="instruccion-title">¿Dónde lo subo?</div></div><div class="instruccion-body">En tu card de sucursal, clic en <strong>"Reportes Semanales de Ventas"</strong>. Te lleva directo a la carpeta en Drive.</div></div>
+          <div class="instruccion-card"><div class="instruccion-header"><div class="instruccion-num">4</div><div class="instruccion-title">¿Cuándo?</div></div><div class="instruccion-body"><strong>Cada lunes antes de las 10:00 AM.</strong> Llénalo diariamente durante la semana — no al final.</div></div>
+          <div class="instruccion-card"><div class="instruccion-header"><div class="instruccion-num">5</div><div class="instruccion-title">¿Qué incluye?</div></div><div class="instruccion-body">Venta bruta, neta, medios de pago, TRX, crepas (Nutella por separado), descuentos, delivery y % vs meta.</div></div>
+          <div class="instruccion-card"><div class="instruccion-header"><div class="instruccion-num">6</div><div class="instruccion-title">¿Problemas?</div></div><div class="instruccion-body">Escríbele a <strong>Saúl Ibrahim García</strong> directamente por WhatsApp.</div></div>
+        </div>
+      </div>
+      <div class="cards-grid" id="sucursales-grid"></div>
+      <div id="search-empty" class="search-empty">No se encontró ninguna sucursal.</div>
+      <div class="notice notice-info">
+        <span class="notice-icon">📁</span>
+        <div>Carpeta raíz GDL: <a href="https://drive.google.com/drive/folders/1Bkk9a21U4aOsIRRJ5UxXNtPH-rscMtwW" target="_blank" rel="noopener" style="color:var(--verde);font-weight:600">Abrir en Drive →</a></div>
+      </div>
+    </div>

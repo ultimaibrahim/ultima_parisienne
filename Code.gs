@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 const SHEET_ID = ""; // ← PEGA AQUÍ el ID de tu Google Sheet
+const DRIVE_FOLDER_ID = ""; // ← PEGA AQUÍ el ID de la carpeta principal de Drive (Reportes Semanales)
 const CORS_ORIGIN = "*"; // Cambia a la URL exacta del portal en producción
 
 // ── Nombres de pestañas ──────────────────────────────────────
@@ -54,6 +55,7 @@ function doPost(e) {
       case "deleteAviso":   return resp(deleteAviso(body));
       case "saveJunta":     return resp(saveJunta(body));
       case "saveEntrega":   return resp(saveEntrega(body));
+      case "uploadFile":    return resp(uploadFile(body));
       default:              return resp({ error: "Acción desconocida: " + action }, 400);
     }
   } catch (err) {
@@ -316,4 +318,56 @@ function setupHojaInicial() {
   }
 
   Logger.log("✅ Setup completado. Abre el Sheet para revisar las pestañas.");
+}
+
+// ════════════════════════════════════════════════════════════════
+//  UPLOAD DE ARCHIVOS (Drive API)
+// ════════════════════════════════════════════════════════════════
+
+function uploadFile(payload) {
+  validarSesion(payload.token, ["gerente", "regional", "admin", "zonal"]);
+  
+  if (!DRIVE_FOLDER_ID) {
+    throw new Error("El sistema no tiene configurado el ID de Drive (DRIVE_FOLDER_ID en Code.gs).");
+  }
+
+  const base64Data = payload.fileData.split(',')[1]; 
+  const blob = Utilities.newBlob(Utilities.base64Decode(base64Data), payload.mimeType, payload.fileName);
+  
+  // 1. Encontrar o crear la carpeta de la sucursal dentro de la carpeta principal
+  const mainFolder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+  const folders = mainFolder.getFoldersByName(payload.sucursal);
+  const sucFolder = folders.hasNext() ? folders.next() : mainFolder.createFolder(payload.sucursal);
+  
+  // 2. Usar Advanced Drive API para insertar y convertir (Requiere habilitar Drive API en el editor)
+  let file;
+  try {
+    const resource = {
+      title: payload.fileName,
+      mimeType: MimeType.GOOGLE_SHEETS,
+      parents: [{ id: sucFolder.getId() }]
+    };
+    // Requiere Drive API v2 activada en Servicios
+    file = Drive.Files.insert(resource, blob, { convert: true });
+    
+    // Aquí (futuro) extraemos los datos de SpreadsheetApp.openById(file.id);
+    // TODO: Necesitamos las coordenadas exactas de las celdas (Meta, Venta, TRX)
+    
+  } catch (err) {
+    // Si falla Drive API (por no estar habilitado), hacemos fallback a DriveApp normal
+    const fallbackFile = sucFolder.createFile(blob);
+    return { 
+      ok: true, 
+      fileId: fallbackFile.getId(), 
+      url: fallbackFile.getUrl(),
+      warning: "Drive API avanzado no habilitado. El archivo se guardó como .xlsx crudo y no se auto-consolidó. " + err.message
+    };
+  }
+
+  // Si llegamos aquí, el archivo se convirtió a Sheet exitosamente
+  return {
+    ok: true,
+    fileId: file.id,
+    url: file.alternateLink
+  };
 }

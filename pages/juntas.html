@@ -1,0 +1,31 @@
+<div class="section-title anim anim-1">Juntas y Acuerdos</div>
+    <div class="section-desc anim anim-2">Minutas y acuerdos de reuniones de gerentes y encargados, disponibles para todos los colaboradores.</div>
+
+    <!-- Barra de acciones -->
+    <div class="juntas-toolbar anim anim-2" id="juntas-toolbar" style="display:none;">
+      <button class="btn-nueva-junta" onclick="abrirModalJunta(null)">+ Nueva minuta</button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="juntas-filtros anim anim-3">
+      <button class="jfiltro active" data-tipo="todos" onclick="filtrarJuntas('todos',this)">Todas</button>
+      <button class="jfiltro" data-tipo="regional" onclick="filtrarJuntas('regional',this)">Regional</button>
+      <button class="jfiltro" data-tipo="encargados" onclick="filtrarJuntas('encargados',this)">Encargados</button>
+      <button class="jfiltro" data-tipo="operativa" onclick="filtrarJuntas('operativa',this)">Operativa</button>
+    </div>
+
+    <!-- Lista de juntas -->
+    <div id="juntas-list" class="juntas-list anim anim-4"></div>
+
+    <!-- Estado vacío -->
+    <div id="juntas-empty" class="juntas-empty anim anim-4" style="display:none;">
+      <div class="juntas-empty-icon">📋</div>
+      <div class="juntas-empty-titulo">Sin minutas publicadas</div>
+      <div class="juntas-empty-texto">Cuando se publique una minuta de junta, aparecerá aquí para todos los colaboradores.</div>
+    </div>
+
+    <!-- Loading -->
+    <div id="juntas-loading" class="juntas-loading anim anim-3">
+      <div class="jload-spinner"></div>
+      <span>Cargando juntas...</span>
+    </div>
