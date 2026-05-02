@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════ */
 
 const VERSION   = 'v0.6.0';
-const API_URL   = 'https://script.google.com/macros/s/AKfycbwZmrpTS1chaKseyqH2YV0Ty8jnGp1yEDmE2cp8gjJN6Ds7XxdZ9kad9o4R1EiSPnSC/exec';
+const API_URL   = 'https://script.google.com/macros/s/AKfycbwnfhrIGKaAy3LuRdKx7J_QIRH-GelnbazmpoEeaxmbabMcEW9Ue3BcM5X1nCVd0euZ/exec';
 const OB_KEY    = 'lcp_gdl_ob_v1';
 const DM_KEY    = 'lcp_gdl_dm';
 const AV_KEY    = 'lcp_gdl_avisos_v3';
