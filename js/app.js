@@ -20,8 +20,7 @@ const NUEVO_WINDOW_MS = 86400000;
 const LEADERSHIP_ROLES = ['admin','analista','regional','zonal'];
 
 const DEMO_USERS = [
-  {id:1, nombre:'Oliver González',  correo:'oliver@lcp.mx',   sucursal:null,           rol:'regional', password:'lcp2026'},
-  {id:2, nombre:'Ibrahim Garcia',   correo:'ultima.ibrahim@proton.me', sucursal:'Andares', rol:'analista', password:'lcp2026'},
+  {id:1, nombre:'Oliver González',  correo:'oliver@lcp.mx',   sucursal:null, rol:'regional', password:'lcp2026'},
   {id:3, nombre:'Gerente Santa Anita', correo:'galeriassantaanita@lacrepeparisienne.com', sucursal:'Santa Anita', rol:'gerente', password:'grupomyt2025'},
   {id:4, nombre:'Gerente Andares', correo:'andares@lacrepeparisienne.com', sucursal:'Andares', rol:'gerente', password:'grupomyt2025'},
   {id:5, nombre:'Gerente Mercado Andares', correo:'mercadoandares@lacrepeparisienne.com', sucursal:'Mercado Andares', rol:'gerente', password:'grupomyt2025'},
@@ -728,7 +727,7 @@ function renderAdminLecturas(lecturas){
   const criticos=avisos.filter(a=>a.critico);
   if(!criticos.length){body.innerHTML='<div style="color:var(--text-muted);padding:14px 0;">No hay avisos críticos activos.</div>';$('lecturas-meta').textContent='—';return;}
   const map={};(lecturas||[]).forEach(l=>{if(!map[l.avisoId])map[l.avisoId]=[];map[l.avisoId].push(l);});
-  const totalGerentes=9;
+  const totalGerentes = SUCURSALES.length;
   body.innerHTML=criticos.map(a=>{
     const lect=map[a.id]||[],pct=Math.round((lect.length/totalGerentes)*100);
     const pills=lect.map(l=>`<span class="lectura-pill"><span class="dot"></span>${escapeHtml(l.userNombre||'')}${l.userSucursal?' · '+escapeHtml(l.userSucursal):''}</span>`).join(' ');
@@ -771,7 +770,7 @@ async function guardarConsolidadoLocal(){
   const data = getTablaData();
   const sem = document.getElementById('semana-label').textContent.trim();
   if(API_URL) {
-    apiCall('saveConsolidado', { semana: sem, data: data });
+    await apiCall('saveConsolidado', { semana: sem, data: data });
   }
   const allData = JSON.parse(localStorage.getItem('lcp_gdl_consolidado') || '{}');
   allData[sem] = data;
