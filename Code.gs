@@ -6,8 +6,8 @@
 //    Usuarios y Sucursales viven en app.js (DEMO_USERS / SUCURSALES).
 // ════════════════════════════════════════════════════════════════
 
-const SHEET_ID        = ""; // ← PEGA AQUÍ el ID de tu Google Sheet (solo las 44 letras, no la URL)
-const DRIVE_FOLDER_ID = ""; // ← PEGA AQUÍ el ID de la carpeta raíz de Drive (LCP — Región GDL)
+const SHEET_ID        = "1tje-3xwR_MtCnoeAcTxV8_LbHjyM03NsH8tRlwdPySA"; // PortalGDL_db
+const DRIVE_FOLDER_ID = "1MCHFd8mCctnM5OOMmpaKPi3sLZhzoUOE"; // LCP — Región GDL (Reportes)
 
 // ── Nombres de pestañas ─────────────────────────────────────────
 const TAB = {
