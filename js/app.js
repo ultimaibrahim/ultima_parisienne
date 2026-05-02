@@ -780,7 +780,7 @@ async function guardarConsolidadoLocal(){
 async function cargarConsolidadoLocal(){
   const sem = document.getElementById('semana-label').textContent.trim();
   if (API_URL) {
-    const res = await apiGet('getConsolidado&semana=' + encodeURIComponent(sem));
+    const res = await apiGet('getConsolidado', { semana: sem });
     if (res.ok && res.data.length > 0) {
       document.querySelectorAll('#tabla-body tr').forEach((tr,i)=>{
         const rowData = res.data.find(r => r.nombre === SUCURSALES[i]);
