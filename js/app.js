@@ -754,8 +754,6 @@ async function guardarConsolidadoLocal(){
   if(API_URL) {
     apiCall('saveConsolidado', { semana: sem, data: data });
   }
-  const data = getTablaData();
-  const sem = $('semana-label').textContent.trim();
   const allData = JSON.parse(localStorage.getItem('lcp_gdl_consolidado') || '{}');
   allData[sem] = data;
   localStorage.setItem('lcp_gdl_consolidado', JSON.stringify(allData));
@@ -779,7 +777,6 @@ async function cargarConsolidadoLocal(){
       return;
     }
   }
-  const sem = $('semana-label').textContent.trim();
   const allData = JSON.parse(localStorage.getItem('lcp_gdl_consolidado') || '{}');
   const data = allData[sem];
   if(data && Array.isArray(data)){
