@@ -11,6 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
 </head>
 <body>
 
@@ -81,6 +82,7 @@
         <strong>Modo demo</strong> — Apps Script no conectado.<br>
         Prueba: <code>oliver@lcp.mx</code> / <code>lcp2026</code>
       </div>
+      <div id="login-server-badge" style="display:none;margin-top:10px;font-size:11px;font-weight:600;text-align:center;opacity:0.75;"></div>
     </div>
     <div class="login-footer">¿Problemas? Escríbele a Saúl Ibrahim.</div>
   </div>
@@ -369,6 +371,14 @@
       script.src = 'js/app.js';
       document.body.appendChild(script);
     })();
+  </script>
+<script>
+    // Registro de Service Worker para caché offline
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/ultima_parisienne/sw.js', { scope: '/ultima_parisienne/' })
+        .then(() => console.log('[SW] Registrado'))
+        .catch(e => console.warn('[SW] Error:', e));
+    }
   </script>
 </body>
 </html>

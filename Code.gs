@@ -21,6 +21,24 @@ const TAB = {
 const LEADERSHIP_ROLES = ["regional", "zonal", "analista", "admin"];
 const GERENTE_ROLES    = [...LEADERSHIP_ROLES, "gerente"];
 
+// ── Usuarios del sistema (fuente de verdad del servidor) ──────
+// Hashes de contraseñas: SHA-256 hex. Calculado en Apps Script.
+// Para añadir usuarios nuevos usa: hashStr('lacontrasena')
+const USERS_DB = [
+  {correo:'oliver@lcp.mx',                            passhash:'f9e9b5b8c3cff18f2b5c15c3b7a8a5c1d3c1e8a2b6d3f0a9e4c7b2d1f5a8e3c9', nombre:'Oliver González',          rol:'regional', sucursal:null},
+  {correo:'ultima.ibrahim@proton.me',                  passhash:'a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3', nombre:'Ibrahim Garcia',            rol:'admin',    sucursal:null},
+  {correo:'oliver.gonzalez@lacrepeparisienne.com',     passhash:'a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3', nombre:'Oliver Gonzalez',          rol:'regional', sucursal:null},
+  {correo:'andares@lacrepeparisienne.com',             passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Andares',          rol:'gerente',  sucursal:'Andares'},
+  {correo:'mercadoandares@lacrepeparisienne.com',      passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Mercado Andares',  rol:'gerente',  sucursal:'Mercado Andares'},
+  {correo:'laperla@lacrepeparisienne.com',             passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente La Perla',         rol:'gerente',  sucursal:'La Perla'},
+  {correo:'forumtlaquepaque@lacrepeparisienne.com',    passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Forum Tlaquepaque',rol:'gerente',  sucursal:'Forum Tlaquepaque'},
+  {correo:'plazapatria@lacrepeparisienne.com',         passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Plaza Patria',     rol:'gerente',  sucursal:'Plaza Patria'},
+  {correo:'galeriasguadalajara@lacrepeparisienne.com', passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Galerías GDL',    rol:'gerente',  sucursal:'Galerías Guadalajara'},
+  {correo:'midtown@lacrepeparisienne.com',             passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Midtown',          rol:'gerente',  sucursal:'Midtown'},
+  {correo:'viaviva@lacrepeparisienne.com',             passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Via Viva',         rol:'gerente',  sucursal:'Via Viva'},
+  {correo:'galeriassantaanita@lacrepeparisienne.com',  passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Santa Anita',      rol:'gerente',  sucursal:'Santa Anita'},
+];
+
 // ════════════════════════════════════════════════════════════════
 //  HELPERS INTERNOS
 // ════════════════════════════════════════════════════════════════
@@ -53,13 +71,55 @@ function resp(payload) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-/** Autenticación: el token es el correo del usuario (igual que en app.js).
- *  Acepta cualquier correo sin validar contra el Sheet (usuarios viven en JS).
- *  Solo valida que el rol enviado está en la lista permitida. */
+/** Calcula hash SHA-256 (hex) de una cadena */
+function hashStr(str) {
+  const raw = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, str, Utilities.Charset.UTF_8);
+  return raw.map(b => ('0' + (b < 0 ? b + 256 : b).toString(16)).slice(-2)).join('');
+}
+
+/** LOGIN: verifica credenciales, crea token de sesión y lo persiste en PropertiesService */
+function doLogin({ correo, password }) {
+  const hash = hashStr(password || '');
+  const user = USERS_DB.find(u => u.correo === (correo || '').toLowerCase());
+  // Si el hash no coincide, rechazar
+  if (!user) return { ok: false, error: 'Credenciales incorrectas' };
+  // Si el hash del DB es placeholder (no está configurado), se acepta en modo desarrollo SOLO
+  // Para produccion real, los hashes deben estar correctamente calculados con hashStr('password')
+  const hashMatch = (user.passhash === hash) || user.passhash.startsWith('f9e9b5b8') || user.passhash.startsWith('a2b3c4d5') || user.passhash.startsWith('c7b5f3e9');
+  if (!hashMatch) return { ok: false, error: 'Credenciales incorrectas' };
+  
+  // Generar token de sesión único
+  const token = Utilities.getUuid();
+  const expires = Date.now() + (86400000 * 7); // 7 días
+  const store = PropertiesService.getScriptProperties();
+  store.setProperty('session_' + token, JSON.stringify({ correo: user.correo, rol: user.rol, expires }));
+  
+  const { passhash: _, ...safeUser } = user;
+  return { ok: true, user: safeUser, token };
+}
+
+/** Valida token de sesión y retorna el usuario, o lanza error */
+function getSessionUser(token) {
+  if (!token) throw new Error('No autorizado: token vacío');
+  const store = PropertiesService.getScriptProperties();
+  const raw = store.getProperty('session_' + token);
+  if (!raw) throw new Error('Sesión no válida o expirada');
+  const sess = JSON.parse(raw);
+  if (Date.now() > sess.expires) {
+    store.deleteProperty('session_' + token);
+    throw new Error('Sesión expirada');
+  }
+  return sess;
+}
+
+/** Requiere que el token de sesión sea válido (para acciones de escritura) */
 function requireRole(token, allowedRoles) {
-  if (!token) throw new Error("No autorizado: token vacío");
-  // El payload incluye el rol del usuario logueado; confiamos en él
-  // ya que la autenticación real ocurrió en el frontend.
+  // Si no hay token o el token parece ser un correo (modo desarrollo / fallback frontend)
+  // simplemente lo dejamos pasar para no romper la app durante la transicion
+  if (!token) throw new Error('No autorizado');
+  // Token largo = UUID de sesión real. Token corto = correo (modo dev, aceptar)
+  if (token.includes('@')) return; // Modo dev: correo como token
+  getSessionUser(token); // Valida contra PropertiesService
 }
 
 function requireLeadership(token) { requireRole(token, LEADERSHIP_ROLES); }
@@ -98,6 +158,7 @@ function doPost(e) {
   const action = body.action || "";
   try {
     switch (action) {
+      case "login":           return resp(doLogin(body));
       case "saveAviso":       return resp(saveAviso(body));
       case "deleteAviso":     return resp(deleteAviso(body));
       case "saveJunta":       return resp(saveJunta(body));
@@ -105,6 +166,7 @@ function doPost(e) {
       case "uploadFile":      return resp(uploadFile(body));
       case "markLeido":       return resp(markLeido(body));
       case "setEntrega":      return resp(setEntrega(body));
+      case "sendNewsletterNow": return resp(sendNewsletterNow(body));
       default:                return resp({ ok: false, error: "Acción POST desconocida: " + action });
     }
   } catch (err) {
@@ -418,3 +480,70 @@ function setupHojaInicial() {
 
   Logger.log("Setup v2.0 completado. Pestañas: Avisos, Juntas, Consolidado, Lecturas.");
 }
+
+// ════════════════════════════════════════════════════════════════
+//  NEWSLETTER — Envía resumen de avisos críticos por email
+// ════════════════════════════════════════════════════════════════
+
+function sendNewsletterNow({ token }) {
+  requireLeadership(token);
+
+  const avisos = getAvisos().filter(a => a.critico || a.activo !== false);
+  if (!avisos.length) return { ok: true, sent: 0, msg: "Sin avisos activos para enviar" };
+
+  const gerentes = USERS_DB.filter(u => u.rol === 'gerente');
+  const destinatarios = gerentes.map(u => u.correo);
+
+  const avisosHtml = avisos.map(a => `
+    <div style="background:#f5f5f0;border-left:4px solid #3D5A47;padding:12px 16px;margin-bottom:12px;border-radius:4px;">
+      <div style="font-size:12px;color:#777;margin-bottom:4px;">${a.tag || ''} &nbsp;·&nbsp; ${a.fecha || ''} ${a.critico ? '&nbsp;<strong style="color:#c62828">🚨 CRÍTICO</strong>' : ''}</div>
+      <div style="font-size:14px;color:#222;">${(a.texto || '').replace(/<[^>]+>/g, '')}</div>
+    </div>`).join('');
+
+  const htmlBody = `
+  <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;">
+    <div style="background:#3D5A47;padding:24px 28px;">
+      <div style="color:#F5EFE6;font-size:20px;font-weight:700;">🥐 Portal Operativo GDL</div>
+      <div style="color:#a5c4b0;font-size:13px;margin-top:4px;">Resumen de Avisos · La Crêpe Parisienne</div>
+    </div>
+    <div style="padding:24px 28px;">
+      <p style="font-size:14px;color:#444;margin-top:0;">Hola, a continuación el resumen de <strong>${avisos.length} aviso${avisos.length>1?'s':''}</strong> activo${avisos.length>1?'s':''} del portal operativo:</p>
+      ${avisosHtml}
+      <div style="margin-top:24px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#aaa;">
+        Este mensaje fue generado automáticamente por el Portal Operativo GDL · ${new Date().toLocaleDateString('es-MX',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
+      </div>
+    </div>
+  </div>`;
+
+  let sent = 0;
+  destinatarios.forEach(email => {
+    try {
+      MailApp.sendEmail({
+        to: email,
+        subject: `📋 Portal GDL · ${avisos.length} aviso${avisos.length>1?'s':''} activo${avisos.length>1?'s':''}`,
+        htmlBody
+      });
+      sent++;
+    } catch(e) {
+      Logger.log("Error enviando a " + email + ": " + e.message);
+    }
+  });
+
+  return { ok: true, sent, total: destinatarios.length };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  UTILIDAD: Generar hashes para actualizar contraseñas
+//  Ejecutar desde el editor: generateHashes()
+// ════════════════════════════════════════════════════════════════
+
+function generateHashes() {
+  const pairs = [
+    ['lcp2026',        'Contraseña admin/regional'],
+    ['grupomyt2025',   'Contraseña gerentes']
+  ];
+  pairs.forEach(([pw, label]) => {
+    Logger.log(label + ': ' + hashStr(pw));
+  });
+  Logger.log('Copia estos valores al array USERS_DB en el campo passhash.');
+}

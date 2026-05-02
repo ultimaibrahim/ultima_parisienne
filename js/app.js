@@ -117,11 +117,25 @@ function cerrarOnboarding(){
 }
 
 /* ── AUTH ─────────────────────────────────────────────────── */
-function iniciarFlujoAuth(){
+async function iniciarFlujoAuth(){
   const sess=getSession();
   if(sess){currentUser=sess;aplicarRoles();refrescarDatosBackend();return;}
   $('login-screen').classList.remove('hidden');
-  if(API_URL){const h=$('login-demo-hint');if(h)h.style.display='none';}
+  if(API_URL){
+    const h=$('login-demo-hint');if(h)h.style.display='none';
+    // Ping para mostrar badge de conectividad
+    try{
+      const ping=await apiGet('ping');
+      const badge=$('login-server-badge');
+      if(badge){
+        badge.textContent=ping.ok?'🟢 Servidor en línea':'🔴 Servidor sin respuesta';
+        badge.style.display='block';
+      }
+    }catch(e){
+      const badge=$('login-server-badge');
+      if(badge){badge.textContent='🔴 Sin conexión al servidor';badge.style.display='block';}
+    }
+  }
 }
 function getSession(){
   try{const raw=localStorage.getItem(SESS_KEY);if(!raw)return null;const s=JSON.parse(raw);if(Date.now()>s.expires){localStorage.removeItem(SESS_KEY);return null;}return s.user;}
@@ -416,8 +430,10 @@ async function handleFileUpload(e) {
   if(!file) return;
   
   if(currentUploadAction === 'Reporte de Ventas') {
-    if(!file.name.toLowerCase().includes('venta') && !file.name.toLowerCase().includes('.xlsx')) {
-      alert("Formato inválido. Sube el Excel con nombre: VentaSemanal_[SUC]_[MES][AÑO]_S[#].xlsx");
+    const nomOk = file.name.toLowerCase().includes('venta');
+    const extOk = /\.(xlsx|xls)$/i.test(file.name);
+    if(!nomOk || !extOk) {
+      mostrarToast('⚠️ Formato inválido. Nombre: VentaSemanal_[SUC]_S[#].xlsx');
       e.target.value = '';
       return;
     }
@@ -438,13 +454,17 @@ async function handleFileUpload(e) {
        });
        
        if(res.ok) {
-         mostrarToast('✓ Archivo procesado con éxito');
+         const extras = res.datos ? ` · Venta: $${(res.datos.venta||0).toLocaleString('es-MX')}` : '';
+         mostrarToast('✓ Archivo procesado con éxito' + extras);
          if(currentUploadAction === 'Reporte de Ventas') {
            const d = getChecklistData();
            if(!d[currentUser.sucursal]) alternarMiEntrega();
+           cargarConsolidadoLocal();
          }
+         if(res.warning) console.warn('[Upload warning]', res.warning);
        } else {
-         mostrarToast('❌ Error: ' + (res.error || 'Fallo de conexión'));
+         mostrarToast('❌ Error al subir: ' + (res.error || 'Fallo de conexión'));
+         console.error('[Upload error]', res);
        }
     } else {
        setTimeout(() => {
@@ -486,18 +506,28 @@ function saveHistorico(){localStorage.setItem(HIST_KEY,JSON.stringify(historico)
 function getLeidosLocales(){try{return JSON.parse(localStorage.getItem(LEIDO_KEY)||'{}');}catch{return{};}}
 function setLeidoLocal(id){const m=getLeidosLocales();m[id]=Date.now();localStorage.setItem(LEIDO_KEY,JSON.stringify(m));}
 
+const AVISOS_CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+const AVISOS_CACHE_TS_KEY = 'lcp_gdl_avisos_ts';
+
 async function cargarAvisos(){
   loadHistorico();
   if(API_URL) {
-    try {
-      const res = await apiGet('avisos');
-      if(res.ok && Array.isArray(res.data)) {
-        avisos = res.data;
-        renderAvisos();
-        return;
-      }
-    } catch(e) { console.warn("Error cargando avisos", e); }
+    const lastFetch = parseInt(localStorage.getItem(AVISOS_CACHE_TS_KEY)||'0', 10);
+    const cacheValid = (Date.now() - lastFetch) < AVISOS_CACHE_TTL;
+    if(!cacheValid) {
+      try {
+        const res = await apiGet('avisos');
+        if(res.ok && Array.isArray(res.data)) {
+          avisos = res.data;
+          saveAvisos();
+          localStorage.setItem(AVISOS_CACHE_TS_KEY, String(Date.now()));
+          renderAvisos();
+          return;
+        }
+      } catch(e) { console.warn('Error cargando avisos del servidor', e); }
+    }
   }
+  // Fallback: localStorage
   const raw=localStorage.getItem(AV_KEY);
   if(raw===null){avisos=AVISOS_DEFAULT.map(a=>({...a}));saveAvisos();}
   else{try{avisos=JSON.parse(raw);}catch{avisos=[];}if(!Array.isArray(avisos))avisos=[];}
@@ -770,7 +800,8 @@ async function guardarConsolidadoLocal(){
   const data = getTablaData();
   const sem = document.getElementById('semana-label').textContent.trim();
   if(API_URL) {
-    await apiCall('saveConsolidado', { semana: sem, data: data });
+    const r = await apiCall('saveConsolidado', { semana: sem, data: data });
+    if(!r.ok) console.warn('[Consolidado] Error al sincronizar con servidor:', r.error);
   }
   const allData = JSON.parse(localStorage.getItem('lcp_gdl_consolidado') || '{}');
   allData[sem] = data;
@@ -970,13 +1001,22 @@ function renderChartEntregas(entregas){
 function renderChartTendencia(){
   const ctx=document.getElementById('chart-tendencia');if(!ctx)return;
   const c=getChartColors();
-  // datos demo de tendencia (6 semanas)
-  const semanas=['S1','S2','S3','S4','S5','S6 (actual)'];
-  const demo=[820000,910000,875000,950000,885000,930000];
+  // Usar datos reales del consolidado histórico (localStorage)
+  const allData = JSON.parse(localStorage.getItem('lcp_gdl_consolidado')||'{}');
+  const sems = Object.keys(allData).sort().slice(-6);
+  const semanas = sems.length >= 2
+    ? sems.map((s,i)=>i===sems.length-1?s+' (actual)':s)
+    : ['S1','S2','S3','S4','S5','Actual'];
+  const totales = sems.length >= 2
+    ? sems.map(s=>{
+        const rows=allData[s]||[];
+        return rows.reduce((acc,r)=>acc+(parseFloat(r.venta)||0),0);
+      })
+    : [820000,910000,875000,950000,885000,930000]; // demo si no hay datos reales aún
   if(chartTendencia)chartTendencia.destroy();
   chartTendencia=new Chart(ctx,{
     type:'line',
-    data:{labels:semanas,datasets:[{label:'Venta neta regional',data:demo,borderColor:c.sage,backgroundColor:'rgba(122,158,138,0.1)',borderWidth:2.5,pointBackgroundColor:c.verde,pointRadius:4,fill:true,tension:0.4}]},
+    data:{labels:semanas,datasets:[{label:'Venta neta regional',data:totales,borderColor:c.sage,backgroundColor:'rgba(122,158,138,0.1)',borderWidth:2.5,pointBackgroundColor:c.verde,pointRadius:4,fill:true,tension:0.4}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:c.text,font:{family:'DM Sans',size:11}}}},
     scales:{x:{ticks:{color:c.text,font:{family:'DM Sans',size:10}},grid:{color:c.grid}},y:{ticks:{color:c.text,font:{family:'DM Sans',size:10},callback:v=>'$'+(v/1000).toFixed(0)+'k'},grid:{color:c.grid}}}}
   });
