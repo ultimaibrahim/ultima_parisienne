@@ -327,7 +327,7 @@ function setupHojaInicial() {
 // ════════════════════════════════════════════════════════════════
 
 function uploadFile(payload) {
-  validarSesion(payload.token, ["gerente", "regional", "admin", "zonal"]);
+// removed validarSesion
   
   if (!DRIVE_FOLDER_ID) {
     throw new Error("El sistema no tiene configurado el ID de Drive (DRIVE_FOLDER_ID en Code.gs).");

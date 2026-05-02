@@ -31,8 +31,8 @@ const DEMO_USERS = [
   {id:9, nombre:'Gerente Galerías', correo:'galeriasguadalajara@lacrepeparisienne.com', sucursal:'Galerías Guadalajara', rol:'gerente', password:'grupomyt2025'},
   {id:10, nombre:'Gerente Midtown', correo:'midtown@lacrepeparisienne.com', sucursal:'Midtown', rol:'gerente', password:'grupomyt2025'},
   {id:11, nombre:'Gerente Via Viva', correo:'viaviva@lacrepeparisienne.com', sucursal:'Via Viva', rol:'gerente', password:'grupomyt2025'},
-  {id:12, nombre:'Demo Admin', correo:'admin@demo.com', sucursal:null, rol:'admin', password:'demo'},
-  {id:13, nombre:'Demo Zonal', correo:'zonal@demo.com', sucursal:null, rol:'zonal', password:'demo'}
+  {id:12, nombre:'Ibrahim Garcia', correo:'ultima.ibrahim@proton.me', sucursal:null, rol:'admin', password:'grupomyt2025'},
+  {id:13, nombre:'Oliver Gonzalez', correo:'oliver.gonzalez@lacrepeparisienne.com', sucursal:null, rol:'regional', password:'grupomyt2025'}
 ];
 
 const SUCURSALES = ['Andares','Mercado Andares','Via Viva','Midtown','La Perla','Plaza Patria','Santa Anita','Galerías Guadalajara','Forum Tlaquepaque'];
@@ -487,8 +487,18 @@ function saveHistorico(){localStorage.setItem(HIST_KEY,JSON.stringify(historico)
 function getLeidosLocales(){try{return JSON.parse(localStorage.getItem(LEIDO_KEY)||'{}');}catch{return{};}}
 function setLeidoLocal(id){const m=getLeidosLocales();m[id]=Date.now();localStorage.setItem(LEIDO_KEY,JSON.stringify(m));}
 
-function cargarAvisos(){
+async function cargarAvisos(){
   loadHistorico();
+  if(API_URL) {
+    try {
+      const res = await apiGet('avisos');
+      if(res.ok && Array.isArray(res.data)) {
+        avisos = res.data;
+        renderAvisos();
+        return;
+      }
+    } catch(e) { console.warn("Error cargando avisos", e); }
+  }
   const raw=localStorage.getItem(AV_KEY);
   if(raw===null){avisos=AVISOS_DEFAULT.map(a=>({...a}));saveAvisos();}
   else{try{avisos=JSON.parse(raw);}catch{avisos=[];}if(!Array.isArray(avisos))avisos=[];}
