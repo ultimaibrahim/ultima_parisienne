@@ -65,24 +65,33 @@ function formatDateShort(iso){if(!iso)return '';try{const d=new Date(iso+'T00:00
 function generateId(){return 'av_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);}
 
 /* ── API CALL ─────────────────────────────────────────────── */
-async function apiCall(action,payload){
-  if(!API_URL)return{ok:false,demo:true};
-  const token=localStorage.getItem(TOKEN_KEY)||'';
-  try{
-    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,token,...(payload||{})})});
-    return await res.json();
-  }catch(e){console.warn('apiCall fail:',action,e);return{ok:false,error:String(e)};}
+async function apiCall(action, payload) {
+  if (!API_URL) return { ok: false, demo: true };
+  const token = localStorage.getItem(TOKEN_KEY) || '';
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, token, ...(payload || {}) })
+    });
+    return await response.json();
+  } catch (e) {
+    console.warn('apiCall fail:', action, e);
+    return { ok: false, error: String(e) };
+  }
 }
 
-async function apiGet(action,params){
-  if(!API_URL)return{ok:false,demo:true};
-  try{
-    const qs=new URLSearchParams({action,...(params||{})}).toString();
-    const res=await fetch(API_URL+'?'+qs);
-    return await res.json();
-  }catch(e){console.warn('apiGet fail:',action,e);return{ok:false,error:String(e)};}
+async function apiGet(action, params) {
+  if (!API_URL) return { ok: false, demo: true };
+  try {
+    const queryParams = new URLSearchParams({ action, ...(params || {}) }).toString();
+    const response = await fetch(`${API_URL}?${queryParams}`);
+    return await response.json();
+  } catch (e) {
+    console.warn('apiGet fail:', action, e);
+    return { ok: false, error: String(e) };
+  }
 }
-
 /* ── DARK MODE ────────────────────────────────────────────── */
 function initDark(){if(localStorage.getItem(DM_KEY)==='1')applyDark(true,false);}
 function toggleDark(){applyDark(document.documentElement.getAttribute('data-theme')!=='dark',true);}
