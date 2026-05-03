@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Portal Operativo de la Región Guadalajara — La Crêpe Parisienne.">
+<meta name="description" content="Portal Operativo Regional — La Crêpe Parisienne · Grupo MYT.">
 <meta name="theme-color" content="#3D5A47">
-<title>Portal GDL — La Crêpe Parisienne</title>
+<title>Portal Operativo — La Crêpe Parisienne</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzNENUE0NyIvPgogIDxsaW5lIHgxPSIyMyIgeTE9IjciIHgyPSIxMCIgeTI9IjI1IiBzdHJva2U9IiNGNUVGRTYiIHN0cm9rZS13aWR0aD0iMi44IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8cmVjdCB4PSI0IiB5PSI5IiB3aWR0aD0iMTUiIGhlaWdodD0iNS41IiByeD0iMiIgZmlsbD0iIzdBOUU4QSIgdHJhbnNmb3JtPSJyb3RhdGUoLTM3IDExLjUgMTEuNSkiLz4KICA8cmVjdCB4PSI0LjUiIHk9IjkuNSIgd2lkdGg9IjE0IiBoZWlnaHQ9IjEuOCIgcng9IjAuOSIgZmlsbD0iI2E4YzRiNCIgb3BhY2l0eT0iMC40IiB0cmFuc2Zvcm09InJvdGF0ZSgtMzcgMTEuNSAxMS41KSIvPgo8L3N2Zz4=">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -366,10 +366,18 @@
           }
         } catch(e) { console.error('Error loading component', e); }
       }));
-      
-      const script = document.createElement('script');
-      script.src = 'js/app.js';
-      document.body.appendChild(script);
+
+      // Cargar módulos en orden: config → api → auth → ui → app (lógica de negocio)
+      const modules = ['js/config.js','js/api.js','js/auth.js','js/ui.js','js/app.js'];
+      for (const src of modules) {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = src + '?v=' + Date.now();
+          s.onload  = resolve;
+          s.onerror = () => { console.error('Error cargando', src); resolve(); };
+          document.body.appendChild(s);
+        });
+      }
     })();
   </script>
 <script>

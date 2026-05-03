@@ -1,170 +1,22 @@
 /* ══════════════════════════════════════════════════════════════
-   Portal GDL · v0.6.0-beta
-   La Crêpe Parisienne · Región Guadalajara
-   Ibrahim Garcia · 01 may 2026
+   app.js · Portal Operativo LCP · v0.7.0
+   Lógica de negocio: avisos, dashboard, sucursales, juntas.
+   Config  → js/config.js  |  API  → js/api.js
+   Auth    → js/auth.js    |  UI   → js/ui.js
    ══════════════════════════════════════════════════════════════ */
 
-const VERSION   = 'v0.6.0';
-const API_URL   = 'https://script.google.com/macros/s/AKfycbwnfhrIGKaAy3LuRdKx7J_QIRH-GelnbazmpoEeaxmbabMcEW9Ue3BcM5X1nCVd0euZ/exec';
-const OB_KEY    = 'lcp_gdl_ob_v1';
-const DM_KEY    = 'lcp_gdl_dm';
-const AV_KEY    = 'lcp_gdl_avisos_v3';
-const HIST_KEY  = 'lcp_gdl_avisos_hist_v3';
-const SESS_KEY  = 'lcp_gdl_session_v1';
-const TOKEN_KEY = 'lcp_gdl_token_v1';
-const CHK_KEY   = 'lcp_gdl_checklist';
-const VISIT_KEY = 'lcp_gdl_last_visit';
-const LEIDO_KEY = 'lcp_gdl_leidos_v1';
-const NOTIF_KEY = 'lcp_gdl_notifs_v1';
-const NUEVO_WINDOW_MS = 86400000;
-const LEADERSHIP_ROLES = ['admin','analista','regional','zonal'];
-
-const DEMO_USERS = [
-  {id:1, nombre:'Oliver González',  correo:'oliver@lcp.mx',   sucursal:null, rol:'regional', password:'lcp2026'},
-  {id:3, nombre:'Gerente Santa Anita', correo:'galeriassantaanita@lacrepeparisienne.com', sucursal:'Santa Anita', rol:'gerente', password:'grupomyt2025'},
-  {id:4, nombre:'Gerente Andares', correo:'andares@lacrepeparisienne.com', sucursal:'Andares', rol:'gerente', password:'grupomyt2025'},
-  {id:5, nombre:'Gerente Mercado Andares', correo:'mercadoandares@lacrepeparisienne.com', sucursal:'Mercado Andares', rol:'gerente', password:'grupomyt2025'},
-  {id:6, nombre:'Gerente La Perla', correo:'laperla@lacrepeparisienne.com', sucursal:'La Perla', rol:'gerente', password:'grupomyt2025'},
-  {id:7, nombre:'Gerente Forum', correo:'forumtlaquepaque@lacrepeparisienne.com', sucursal:'Forum Tlaquepaque', rol:'gerente', password:'grupomyt2025'},
-  {id:8, nombre:'Gerente Patria', correo:'plazapatria@lacrepeparisienne.com', sucursal:'Plaza Patria', rol:'gerente', password:'grupomyt2025'},
-  {id:9, nombre:'Gerente Galerías', correo:'galeriasguadalajara@lacrepeparisienne.com', sucursal:'Galerías Guadalajara', rol:'gerente', password:'grupomyt2025'},
-  {id:10, nombre:'Gerente Midtown', correo:'midtown@lacrepeparisienne.com', sucursal:'Midtown', rol:'gerente', password:'grupomyt2025'},
-  {id:11, nombre:'Gerente Via Viva', correo:'viaviva@lacrepeparisienne.com', sucursal:'Via Viva', rol:'gerente', password:'grupomyt2025'},
-  {id:12, nombre:'Ibrahim Garcia', correo:'ultima.ibrahim@proton.me', sucursal:null, rol:'admin', password:'grupomyt2025'},
-  {id:13, nombre:'Oliver Gonzalez', correo:'oliver.gonzalez@lacrepeparisienne.com', sucursal:null, rol:'regional', password:'grupomyt2025'}
-];
-
-const SUCURSALES = ['Andares','Mercado Andares','Via Viva','Midtown','La Perla','Plaza Patria','Santa Anita','Galerías Guadalajara','Forum Tlaquepaque'];
-const SECCIONES  = ['inicio','dashboard','sucursales','regional','juntas','formatos','about','admin-section'];
-const MOBILE_MAP = {'inicio':'mn-inicio','dashboard':'mn-dashboard','sucursales':'mn-sucursales','regional':'mn-regional','juntas':'mn-juntas','formatos':'mn-formatos'};
-
-const SUCURSAL_DATA = {
-  'Andares':           {code:'AND',root:'12W9Q93CPZ2-HxQsVja7mGgR4WA5UKuOV',ventas:'1mqzW6X7p1mosxahnmfp97rnKuV8J4KsR',inv:'1gW4JMJde4PukMNZZDEA4Ylhn-XGqHCtW',inc:'1WQQUYzjiUuxTb8bQ4og4VRyWSGugqUEV',hor:'1u3ghNzkza1QGid0kAhpTarnbhedXUyUQ'},
-  'Mercado Andares':   {code:'MAN',root:'1EKnE_CnT8z4Jbj0U7-C_GiZjiPZZs447',ventas:'18-90ajjPs-g_eJaWG1tch88TaRrN3LmP',inv:'1eWEgQKLUonmN1t3zfcKrZRQIbAMbYB9h',inc:'1RL4kFDT-OtlpzSyQIV4jNUOd1_qejZKz',hor:'1g-I2lttpFWUF5HANgNvXfp2RJGEjNFne'},
-  'Via Viva':          {code:'VIV',root:'1QhvpWf9iioXBYB40AAENFxKqnvMvgnm0',ventas:'1cIJVEGZho1Qc21CS8NZUUXW75vPl8A6G',inv:'1TtWQDaIevn4KO9smiQe7zK20trihlFWl',inc:'1Z5pZ97nn6xj-dFUw6Oaef7c5R_rWhHFi',hor:'1NtE7nDOs9rITTJar7p0j1p1o77_nFM1w'},
-  'Midtown':           {code:'MID',root:'16VFQ-oWDvuDHTnjIPcJOP4eVPge7eAeB',ventas:'1W3UcwmizLvfkULAgFERQ0tHtTrPJ1DnM',inv:'1l02l3MN5pXF514_b4Qe3qPZEQN4xhQxQ',inc:'19bDJCiWf1kCQxL7KYl-Sue7nbBK4Ztm4',hor:'18dkjZAS4VZBlgCo6f6Oa8ewUOV-5q6a_'},
-  'La Perla':          {code:'PER',root:'1xgbwp2IS-Itp3JCxPaCUO4aLs_R0HacW',ventas:'1gtm44_lvtf3Jx-T_DYUO_jcUBrD24mId',inv:'1K9cnl4Ez2jPEC2zuRKzoDkLIhg_uDUKj',inc:'1D2TcA-dWkeBdZ-XMhCJvaQdLKV40Z9iG',hor:'1z_-amQqoctcbUE5fQ1wuId76CwujB8ei'},
-  'Plaza Patria':      {code:'PAT',root:'1Z3rN3AZvNdVfrTadZ-Rg2VT0iuwC_NFG',ventas:'1379j-uzf8tmqIe5tz8Lo5VPDTvgK4hM8',inv:'1LogHJEJsgFiYr52t0HvffS-dXdIazaXI',inc:'17yEfrEhH_aU2avs0xkRb5Mqv4sVT4Oyg',hor:'16S4ItW3XueNzCwup6FhDcqO9G5kqwEWC'},
-  'Santa Anita':       {code:'ANI',root:'17hAbt1Gb1hsbZht-1SGusX23UGTwtbvB',ventas:'1vJZND7QsSKdgzkS0eqSDhNXqecDUD5sw',inv:'1as_3F1kqS4SXeJ9x4k7bZDTCeCortuCC',inc:'1O1AqtoAddpO1EONYSyp3F7TVQnzr0HqY',hor:'1hhnuRm8t5wSnyUtWsJwXyFPx1_2kwzV7'},
-  'Galerías Guadalajara':      {code:'GAL',root:'1x7GL78aCuSwIS4Q-1dhzj80vi2i4sHHe',ventas:'1zqnO-cu67Q2jamBnV8gFp6U6EmKiY3U4',inv:'1_M7FHAhBb4L9O2ByqxgI5X4u_4-wQVg9',inc:'1o8K1aCZRCXMT6OMg4D2SXWJaSLIChE2R',hor:'14t1sWZteBqo6h9A5uDwxBOfhdq8HCMuc'},
-  'Forum Tlaquepaque': {code:'FOR',root:'1mg7hJu2-wtRn4YiCdW9C6uZqwUalSKQH',ventas:'1DOo4tqN38Vm02jprGI6YOG-4f7L0XEpI',inv:'1n6UO7P8iW0p2xD4l89Uf5p6T9XWHqflR',inc:'1ed0_DtGc_xWW7-gc6g7AVK8IWLuMJmxb',hor:'1i3y-Fcsxx_EY4yxGIE0-O0MjiFmrl02c'}
-};
-
-let currentUser = null;
+// Variables de estado de UI (charts)
 let chartVentas = null, chartEntregas = null, chartTendencia = null;
 let lecturasGlobal = [];
 
-/* ── HELPERS ──────────────────────────────────────────────── */
-const $ = id => document.getElementById(id);
-const isLeadership = u => u && LEADERSHIP_ROLES.includes(u.rol);
-const isGerente    = u => u && u.rol === 'gerente';
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function todayStr(){return new Date().toISOString().slice(0,10);}
-function formatDateShort(iso){if(!iso)return '';try{const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'});}catch{return iso;}}
-function generateId(){return 'av_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);}
-
-/* ── API CALL ─────────────────────────────────────────────── */
-async function apiCall(action, payload) {
-  if (!API_URL) return { ok: false, demo: true };
-  const token = localStorage.getItem(TOKEN_KEY) || '';
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action, token, ...(payload || {}) })
-    });
-    return await response.json();
-  } catch (e) {
-    console.warn('apiCall fail:', action, e);
-    return { ok: false, error: String(e) };
-  }
-}
-
-async function apiGet(action, params) {
-  if (!API_URL) return { ok: false, demo: true };
-  try {
-    const queryParams = new URLSearchParams({ action, ...(params || {}) }).toString();
-    const response = await fetch(`${API_URL}?${queryParams}`);
-    return await response.json();
-  } catch (e) {
-    console.warn('apiGet fail:', action, e);
-    return { ok: false, error: String(e) };
-  }
-}
-/* ── DARK MODE ────────────────────────────────────────────── */
-function initDark(){if(localStorage.getItem(DM_KEY)==='1')applyDark(true,false);}
-function toggleDark(){applyDark(document.documentElement.getAttribute('data-theme')!=='dark',true);}
-function applyDark(on,save){
-  document.documentElement.setAttribute('data-theme',on?'dark':'light');
-  $('dm-icon').textContent=on?'☀️':'🌙';
-  $('dm-label').textContent=on?'Claro':'Oscuro';
-  if(save)localStorage.setItem(DM_KEY,on?'1':'0');
-  if(chartVentas)updateChartColors();
-}
-initDark();
-
-/* ── ONBOARDING ───────────────────────────────────────────── */
-let obActual=0;
-function initOnboarding(){
-  if(localStorage.getItem(OB_KEY)){$('onboarding').style.display='none';iniciarFlujoAuth();}
-}
-function nextOb(n){$('ob-'+obActual).classList.remove('active');obActual=n;$('ob-'+obActual).classList.add('active');}
-function cerrarOnboarding(){
-  const ob=$('onboarding');
-  ob.classList.add('fade-out');
-  localStorage.setItem(OB_KEY,'1');
-  setTimeout(()=>{ob.style.display='none';iniciarFlujoAuth();},650);
-}
-
-/* ── AUTH ─────────────────────────────────────────────────── */
-async function iniciarFlujoAuth(){
-  const sess=getSession();
-  if(sess){currentUser=sess;aplicarRoles();refrescarDatosBackend();return;}
-  $('login-screen').classList.remove('hidden');
-  if(API_URL){
-    const h=$('login-demo-hint');if(h)h.style.display='none';
-    // Ping para mostrar badge de conectividad
-    try{
-      const ping=await apiGet('ping');
-      const badge=$('login-server-badge');
-      if(badge){
-        badge.textContent=ping.ok?'🟢 Servidor en línea':'🔴 Servidor sin respuesta';
-        badge.style.display='block';
-      }
-    }catch(e){
-      const badge=$('login-server-badge');
-      if(badge){badge.textContent='🔴 Sin conexión al servidor';badge.style.display='block';}
-    }
-  }
-}
-function getSession(){
-  try{const raw=localStorage.getItem(SESS_KEY);if(!raw)return null;const s=JSON.parse(raw);if(Date.now()>s.expires){localStorage.removeItem(SESS_KEY);return null;}return s.user;}
-  catch{return null;}
-}
-function saveSession(user){localStorage.setItem(SESS_KEY,JSON.stringify({user,expires:Date.now()+86400000*7}));localStorage.setItem(TOKEN_KEY,user.correo||'');}
-
-async function doLogin(){
-  const correo=$('login-correo').value.trim().toLowerCase();
-  const password=$('login-pass').value;
-  const errEl=$('login-err'),btnEl=$('login-btn-el');
-  errEl.classList.remove('visible');
-  btnEl.disabled=true;btnEl.textContent='Verificando...';
-  let user=null,token=null;
-  if(API_URL){const resp=await apiCall('login',{correo,password});if(resp.ok&&resp.user){user=resp.user;token=resp.token;}}
-  if(!user)user=DEMO_USERS.find(u=>u.correo===correo&&u.password===password)||null;
-  btnEl.disabled=false;btnEl.textContent='Entrar al portal →';
-  if(!user){errEl.classList.add('visible');return;}
-  const userSafe={...user};delete userSafe.password;
-  currentUser=userSafe;saveSession(userSafe);
-  if(token)localStorage.setItem(TOKEN_KEY,token);
-  $('login-screen').classList.add('hidden');
-  aplicarRoles();
-  pushNotif('👋 Bienvenido, '+userSafe.nombre.split(' ')[0]+'!','Sesión iniciada correctamente.');
-  refrescarDatosBackend();
-}
+/* ─────────────────────────────────────────────────────────────
+   ONBOARDING, AUTH, ROLES, USER MENU, NOTIFICACIONES,
+   ROUTING, DARK MODE, TOAST, INSTRUCCIONES y FECHA
+   → Migradas a: auth.js / ui.js
+   ───────────────────────────────────────────────────────────── */
 
 async function refrescarDatosBackend(){
-  if(!API_URL)return;
+  if(!getActiveApiUrl())return;
   const resp=await apiGet('avisos');
   if(resp.ok&&Array.isArray(resp.data)){
     avisos=resp.data;saveAvisos();
@@ -178,21 +30,9 @@ async function refrescarDatosBackend(){
       if(document.getElementById('dashboard').classList.contains('active')) renderHeatmap();
     }
   }
-  // Cargar juntas si la sección está activa o precargar
   cargarJuntas();
 }
 
-function doLogout(){
-  cerrarUserMenu();
-  localStorage.removeItem(SESS_KEY);localStorage.removeItem(TOKEN_KEY);
-  currentUser=null;
-  if($('login-correo'))$('login-correo').value='';
-  if($('login-pass'))$('login-pass').value='';
-  $('login-screen').classList.remove('hidden');
-  ocultarPortal();
-}
-function ocultarPortal(){['header','nav','#main-content','footer'].forEach(s=>{const el=document.querySelector(s)||$(s.replace('#',''));if(el)el.style.display='none';});}
-function mostrarPortal(){['header','nav','#main-content','footer'].forEach(s=>{const el=document.querySelector(s)||$(s.replace('#',''));if(el)el.style.display='';});}
 
 /* ── ROLES ────────────────────────────────────────────────── */
 function aplicarRoles(){
@@ -906,10 +746,10 @@ function initDashboard(){
   const data=getTablaData();
   const conDatos=data.filter(r=>r.meta>0&&r.venta>0);
   const entregas=getChecklistForDash();
-  const entPct=Math.round(entregas/9*100);
+  const entPct=Math.round(entregas/SUCURSALES.length*100);
 
   // KPIs
-  $('kpi-entregas').textContent=entregas+'/9';
+  $('kpi-entregas').textContent=entregas+'/'+SUCURSALES.length;
   $('kpi-entregas-sub').textContent=entPct+'% completado';
   $('kpi-bar-entregas').style.width=entPct+'%';
 
@@ -987,7 +827,7 @@ function renderChartVentas(data){
 function renderChartEntregas(entregas){
   const ctx=document.getElementById('chart-entregas');if(!ctx)return;
   const c=getChartColors();
-  const pendientes=9-entregas;
+  const pendientes=SUCURSALES.length-entregas;
   if(chartEntregas)chartEntregas.destroy();
   chartEntregas=new Chart(ctx,{
     type:'doughnut',
@@ -995,7 +835,7 @@ function renderChartEntregas(entregas){
     options:{responsive:true,maintainAspectRatio:false,cutout:'72%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.label+': '+ctx.parsed}}}}
   });
   const leg=$('chart-entregas-legend');
-  if(leg)leg.innerHTML=`<strong style="color:var(--verde)">${entregas}</strong> de 9 sucursales entregaron`;
+  if(leg)leg.innerHTML=`<strong style="color:var(--verde)">${entregas}</strong> de ${SUCURSALES.length} sucursales entregaron`;
 }
 
 function renderChartTendencia(){
@@ -1086,14 +926,9 @@ function mostrarToast(msg){
 }
 
 /* ── FECHA Y SEMANA ───────────────────────────────────────── */
-const hoy=new Date();
-$('fecha-hoy').textContent=hoy.toLocaleDateString('es-MX',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-const lunes=new Date(hoy);lunes.setDate(hoy.getDate()-((hoy.getDay()+6)%7));
-const domingo=new Date(lunes);domingo.setDate(lunes.getDate()+6);
-const fc={day:'numeric',month:'short'};
-$('semana-label').textContent=`Sem. ${lunes.toLocaleDateString('es-MX',fc)} – ${domingo.toLocaleDateString('es-MX',fc)} · ${hoy.getFullYear()}`;
-$('stat-version').textContent=VERSION;
-$('footer-ver').textContent=VERSION+'-beta · Portal GDL · 2026';
+initFechaHoy();
+$('stat-version').textContent = VERSION;
+$('footer-ver').textContent   = VERSION + '-beta · Portal LCP · 2026';
 
 /* ── KICKOFF ──────────────────────────────────────────────── */
 ocultarPortal();
