@@ -21,7 +21,8 @@ function getActiveApiUrl() {
 async function apiCall(action, payload) {
   const API_URL = getActiveApiUrl();
   if (!API_URL) return { ok: false, demo: true };
-  const token = localStorage.getItem(TOKEN_KEY) || '';
+  let token = localStorage.getItem(TOKEN_KEY) || '';
+  if (token.includes('@')) token = 'offline_demo'; // sanitize legacy tokens
   try {
     const response = await fetch(API_URL, {
       method: 'POST',

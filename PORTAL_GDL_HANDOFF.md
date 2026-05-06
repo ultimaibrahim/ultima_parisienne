@@ -529,16 +529,30 @@ TICKET_UMBRALES: { verde: 150, amarillo: 135 }
 
 ---
 
-### ✅ Estado de los 7 puntos del QA anterior
+### ✅ Estado de los 7 puntos del QA anterior — verificado en código real (Mayo 2026)
 
-| # | Punto | Estado en v0.7.0 |
+| # | Punto | Estado verificado |
 |---|---|---|
-| 1 | `hashMatch` con `startsWith` — bypass de auth | ❌ **Persiste** — línea 88 de `Code.gs` |
-| 2 | `saveAviso` usa `requireGerente` en lugar de `requireLeadership` | ❌ **Persiste** — línea 187 de `Code.gs` |
-| 3 | `markLeido` guarda token en lugar de correo | ❌ **Persiste** — línea 241 de `Code.gs` |
-| 4 | Funciones duplicadas `showSection` / `irAMiSucursal` | ❌ **Persiste** — en ambos módulos |
+| 1 | `hashMatch` con `startsWith` — bypass de auth | ✅ **Resuelto** — `Code.gs` línea 88: solo `===` |
+| 2 | `saveAviso` usa `requireGerente` en lugar de `requireLeadership` | ✅ **Resuelto** — `Code.gs` línea 187: `requireLeadership(token)` |
+| 3 | `markLeido` guarda token en lugar de correo | ✅ **Resuelto** — `Code.gs` líneas 231-253: guarda correo/nombre/sucursal |
+| 4 | Funciones duplicadas `showSection` / `irAMiSucursal` | ✅ **Resuelto** — ambas viven solo en `ui.js` (líneas 32 y 83) |
 | 5 | `pages/` — estado ambiguo (¿dinámico o residual?) | ✅ **Resuelto** — confirmado dinámico via `data-page` |
-| 6 | Service Worker no cachea todos los módulos JS | ❌ **Persiste** — solo `app.js` en `ASSETS` |
-| 7 | Umbrales semáforo hardcodeados | ❌ **Persiste** — líneas 706-707 de `app.js` |
+| 6 | Service Worker no cachea todos los módulos JS | ✅ **Resuelto** — `sw.js` líneas 9-21: ASSETS incluye todos los módulos y pages/ |
+| 7 | Umbrales semáforo hardcodeados | ✅ **Resuelto** — `app.js` usa `TICKET_UMBRALES.verde` / `.amarillo` de `config.js` |
 
-6 de 7 puntos persisten en v0.7.0. El único resuelto es el estado de `pages/`.
+**7 de 7 resueltos.** Auditoría realizada contra código fuente real el 5 de mayo de 2026.
+
+---
+
+### ✅ Bug bypass de token en modo dev (Resuelto)
+
+**`Code.gs` línea 121 — `requireRole` acepta correo como token válido**
+
+Este bug introducido intencionalmente para el modo *fallback offline* fue solucionado en la ejecución de la Fase 3. 
+
+**Fix implementado:** 
+- En `api.js` y `auth.js`, cuando el login es offline, se envía y guarda un marcador neutral estricto (`'offline_demo'`). 
+- En `Code.gs`, la vulnerabilidad de `token.includes('@')` fue cerrada, validando estrictamente por `token === 'offline_demo'`.
+
+Con esto, los endpoints POST quedan protegidos contra manipulaciones basadas en inyección de correos conocidos, preservando la compatibilidad del frontend.

@@ -34,7 +34,7 @@ function getSession() {
 
 function saveSession(user) {
   localStorage.setItem(SESS_KEY, JSON.stringify({ user, expires: Date.now() + 86400000 * 7 }));
-  localStorage.setItem(TOKEN_KEY, user.token || user.correo || '');
+  localStorage.setItem(TOKEN_KEY, user.token || 'offline_demo');
 }
 
 /* ── Flujo de autenticación ───────────────────────────────── */
@@ -155,7 +155,7 @@ function aplicarRoles() {
     $('btn-editar-avisos').style.display = '';
     $('nav-admin').style.display         = '';
     $('checklist-entrega').style.display = '';
-    renderChecklist(); renderAdminAvisos(); renderAdminLecturas([]);
+    renderChecklist(); renderAdminAvisos(); renderAdminLecturas([]); renderAdminUsers();
   } else {
     if ($('admin-section').classList.contains('active')) showSection('inicio', null);
   }

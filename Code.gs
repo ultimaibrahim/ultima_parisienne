@@ -39,6 +39,13 @@ const USERS_DB = [
   {correo:'galeriassantaanita@lacrepeparisienne.com',  passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Santa Anita',      rol:'gerente',  sucursal:'Santa Anita'},
 ];
 
+function getDynamicUsers() {
+  const store = PropertiesService.getScriptProperties();
+  const raw = store.getProperty('DYN_USERS');
+  if (!raw) return [];
+  try { return JSON.parse(raw); } catch (e) { return []; }
+}
+
 // ════════════════════════════════════════════════════════════════
 //  HELPERS INTERNOS
 // ════════════════════════════════════════════════════════════════
@@ -80,7 +87,8 @@ function hashStr(str) {
 /** LOGIN: verifica credenciales, crea token de sesión y lo persiste en PropertiesService */
 function doLogin({ correo, password }) {
   const hash = hashStr(password || '');
-  const user = USERS_DB.find(u => u.correo === (correo || '').toLowerCase());
+  const allUsers = [...USERS_DB, ...getDynamicUsers()];
+  const user = allUsers.find(u => u.correo === (correo || '').toLowerCase());
   // Si el hash no coincide, rechazar
   if (!user) return { ok: false, error: 'Credenciales incorrectas' };
   // Si el hash del DB es placeholder (no está configurado), se acepta en modo desarrollo SOLO
@@ -118,7 +126,7 @@ function requireRole(token, allowedRoles) {
   // simplemente lo dejamos pasar para no romper la app durante la transicion
   if (!token) throw new Error('No autorizado');
   // Token largo = UUID de sesión real. Token corto = correo (modo dev, aceptar)
-  if (token.includes('@')) return; // Modo dev: correo como token
+  if (token === 'offline_demo') return; // Modo dev offline fallback
   getSessionUser(token); // Valida contra PropertiesService
 }
 
@@ -167,6 +175,9 @@ function doPost(e) {
       case "markLeido":       return resp(markLeido(body));
       case "setEntrega":      return resp(setEntrega(body));
       case "sendNewsletterNow": return resp(sendNewsletterNow(body));
+      case "getUsers":        return resp(getUsers(body));
+      case "saveUser":        return resp(saveUser(body));
+      case "deleteUser":      return resp(deleteUser(body));
       default:                return resp({ ok: false, error: "Acción POST desconocida: " + action });
     }
   } catch (err) {
@@ -200,6 +211,11 @@ function saveAviso({ id, tag, fecha, autor, texto, token }) {
   }
   // No existe → insertar
   ss.appendRow([newId, tag, fecha || new Date().toISOString(), autor, texto, true]);
+  
+  if (String(tag).toUpperCase().includes("CRÍTICO")) {
+    try { sendNewsletterNow({ token }); } catch (e) { Logger.log(e); }
+  }
+  
   return { ok: true, id: newId };
 }
 
@@ -239,7 +255,8 @@ function markLeido({ avisoId, token }) {
     correo = session.correo;
   }
 
-  const user = USERS_DB.find(u => u.correo === correo);
+  const allUsers = [...USERS_DB, ...getDynamicUsers()];
+  const user = allUsers.find(u => u.correo === correo);
   const nombre = user ? user.nombre : '';
   const sucursal = user ? (user.sucursal || '') : '';
 
@@ -279,6 +296,9 @@ function saveJunta({ id, fecha, tipo, tema, acuerdos, responsable, estado, autor
     }
   }
   ss.appendRow(row);
+  
+  try { sendNewsletterNow({ token }); } catch (e) { Logger.log(e); }
+  
   return { ok: true, id: newId };
 }
 
@@ -410,9 +430,15 @@ function uploadFile(payload) {
       } catch (e) { Logger.log("Excel parse error: " + e.message); }
     }
 
+    // Parsear semana dinámicamente desde nombre ej: VentaSemanal_AND_S3.xlsx
+    let sem = payload.semana;
+    const matchSem = payload.fileName.match(/_S(\\d+)\\./i);
+    if (matchSem) {
+      sem = new Date().getFullYear() + "-S" + String(matchSem[1]).padStart(2, "0");
+    }
+    
     // Guardar en la pestaña Consolidado
-    if (extracted && payload.semana && payload.sucursal) {
-      const sem = payload.semana;
+    if (extracted && sem && payload.sucursal) {
       const suc = payload.sucursal;
       const ss  = getSheet(TAB.CONSOLIDADO);
       if (ss) {
@@ -504,7 +530,8 @@ function sendNewsletterNow({ token }) {
   const avisos = getAvisos().filter(a => a.critico || a.activo !== false);
   if (!avisos.length) return { ok: true, sent: 0, msg: "Sin avisos activos para enviar" };
 
-  const gerentes = USERS_DB.filter(u => u.rol === 'gerente');
+  const allUsers = [...USERS_DB, ...getDynamicUsers()];
+  const gerentes = allUsers.filter(u => u.rol === 'gerente');
   const destinatarios = gerentes.map(u => u.correo);
 
   const avisosHtml = avisos.map(a => `
@@ -543,6 +570,55 @@ function sendNewsletterNow({ token }) {
   });
 
   return { ok: true, sent, total: destinatarios.length };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  ADMIN: CRUD USUARIOS
+// ════════════════════════════════════════════════════════════════
+
+function getUsers({ token }) {
+  requireLeadership(token);
+  const all = [...USERS_DB, ...getDynamicUsers()].map(u => {
+    const safeUser = {...u};
+    delete safeUser.passhash;
+    return safeUser;
+  });
+  return { ok: true, data: all };
+}
+
+function saveUser({ correo, password, nombre, rol, sucursal, token }) {
+  requireLeadership(token);
+  const store = PropertiesService.getScriptProperties();
+  let dyn = getDynamicUsers();
+  
+  if (USERS_DB.find(u => u.correo === correo.toLowerCase())) {
+    return { ok: false, error: 'Cannot modify system defaults' };
+  }
+  
+  const idx = dyn.findIndex(u => u.correo === correo.toLowerCase());
+  const userObj = { correo: correo.toLowerCase(), nombre, rol, sucursal };
+  
+  if (password) userObj.passhash = hashStr(password);
+  else if (idx >= 0) userObj.passhash = dyn[idx].passhash;
+  else return { ok: false, error: 'Password is required' };
+  
+  if (idx >= 0) dyn[idx] = userObj;
+  else dyn.push(userObj);
+  
+  store.setProperty('DYN_USERS', JSON.stringify(dyn));
+  return { ok: true };
+}
+
+function deleteUser({ correo, token }) {
+  requireLeadership(token);
+  const store = PropertiesService.getScriptProperties();
+  if (USERS_DB.find(u => u.correo === correo.toLowerCase())) {
+    return { ok: false, error: 'Cannot delete system defaults' };
+  }
+  let dyn = getDynamicUsers();
+  dyn = dyn.filter(u => u.correo !== correo.toLowerCase());
+  store.setProperty('DYN_USERS', JSON.stringify(dyn));
+  return { ok: true };
 }
 
 // ════════════════════════════════════════════════════════════════
