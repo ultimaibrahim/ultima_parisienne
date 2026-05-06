@@ -355,28 +355,57 @@
 </footer>
 
   <script>
+    /* Loader seguro: las secciones del portal solo se cargan si hay sesion valida */
     (async function() {
-      const sections = document.querySelectorAll('section[data-page]');
-      await Promise.all(Array.from(sections).map(async s => {
-        try {
-          const res = await fetch(s.getAttribute('data-page'));
-          if(res.ok) {
-            s.innerHTML = await res.text();
-            s.setAttribute('data-loaded', 'true');
-          }
-        } catch(e) { console.error('Error loading component', e); }
-      }));
+      const SESS_KEY = 'lcp_gdl_session_v1';
+      const v = Date.now();
 
-      // Cargar módulos en orden: config → api → auth → ui → app (lógica de negocio)
-      const modules = ['js/config.js','js/api.js','js/auth.js','js/ui.js','js/app.js'];
-      for (const src of modules) {
-        await new Promise((resolve, reject) => {
+      function loadScript(src) {
+        return new Promise(resolve => {
           const s = document.createElement('script');
-          s.src = src + '?v=' + Date.now();
+          s.src = src + '?v=' + v;
           s.onload  = resolve;
           s.onerror = () => { console.error('Error cargando', src); resolve(); };
           document.body.appendChild(s);
         });
+      }
+
+      function sesionValida() {
+        try {
+          const raw = localStorage.getItem(SESS_KEY);
+          if (!raw) return false;
+          const s = JSON.parse(raw);
+          return s && s.user && Date.now() < s.expires;
+        } catch { return false; }
+      }
+
+      async function cargarPaginas() {
+        const sections = document.querySelectorAll('section[data-page]');
+        await Promise.all(Array.from(sections).map(async s => {
+          try {
+            const res = await fetch(s.getAttribute('data-page') + '?v=' + v);
+            if (res.ok) { s.innerHTML = await res.text(); s.setAttribute('data-loaded', 'true'); }
+          } catch(e) { console.error('Error loading component', e); }
+        }));
+      }
+
+      if (sesionValida()) {
+        /* Sesion activa: cargar pages y todos los modulos */
+        await cargarPaginas();
+        for (const src of ['js/config.js','js/api.js','js/auth.js','js/ui.js','js/app.js']) {
+          await loadScript(src);
+        }
+      } else {
+        /* Sin sesion: solo config + auth chain para manejar onboarding y login.
+           Las pages NO se cargan - el contenido del portal no existe en el DOM. */
+        for (const src of ['js/config.js','js/api.js','js/auth.js','js/ui.js']) {
+          await loadScript(src);
+        }
+        /* Hook que auth.js llama despues de login exitoso */
+        window._cargarPortalCompleto = async function() {
+          await cargarPaginas();
+          await loadScript('js/app.js');
+        };
       }
     })();
   </script>

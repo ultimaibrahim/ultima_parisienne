@@ -104,8 +104,16 @@ async function doLogin() {
   activarRegion(currentUser.region);
 
   $('login-screen').classList.add('hidden');
+
+  // Si el portal no estaba cargado (primer login sin sesion previa),
+  // cargar pages/ y app.js ahora. Si ya estaba cargado, ir directo.
+  if (typeof window._cargarPortalCompleto === 'function') {
+    await window._cargarPortalCompleto();
+    window._cargarPortalCompleto = null;
+  }
+
   aplicarRoles();
-  pushNotif('👋 Bienvenido, ' + userSafe.nombre.split(' ')[0] + '!', 'Sesión iniciada correctamente.');
+  pushNotif('\u{1F44B} Bienvenido, ' + userSafe.nombre.split(' ')[0] + '!', 'Sesi\u00f3n iniciada correctamente.');
   refrescarDatosBackend();
 }
 
@@ -146,15 +154,15 @@ function aplicarRoles() {
   $('um-name').textContent         = u.nombre;
   $('um-email').textContent        = u.correo;
   $('um-meta').textContent         = rolLabel + (u.sucursal ? ' · ' + u.sucursal : '') + ' · ' + (REGIONES[u.region]?.nombre || 'GDL');
-  $('um-mi-suc').style.display     = ger ? '' : 'none';
-  $('btn-editar-avisos').style.display  = 'none';
-  $('nav-admin').style.display          = 'none';
-  $('checklist-entrega').style.display  = 'none';
+  if ($('um-mi-suc'))          $('um-mi-suc').style.display     = ger ? '' : 'none';
+  if ($('btn-editar-avisos'))  $('btn-editar-avisos').style.display  = 'none';
+  if ($('nav-admin'))          $('nav-admin').style.display          = 'none';
+  if ($('checklist-entrega'))  $('checklist-entrega').style.display  = 'none';
 
   if (lead) {
-    $('btn-editar-avisos').style.display = '';
-    $('nav-admin').style.display         = '';
-    $('checklist-entrega').style.display = '';
+    if ($('btn-editar-avisos'))  $('btn-editar-avisos').style.display = '';
+    if ($('nav-admin'))          $('nav-admin').style.display         = '';
+    if ($('checklist-entrega'))  $('checklist-entrega').style.display = '';
     renderChecklist(); renderAdminAvisos(); renderAdminLecturas([]);
   } else {
     if ($('admin-section').classList.contains('active')) showSection('inicio', null);

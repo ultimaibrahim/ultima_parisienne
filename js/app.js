@@ -152,7 +152,7 @@ async function handleFileUpload(e) {
     const base64 = event.target.result;
     mostrarToast('⏳ Subiendo archivo a Drive...');
     
-    if(API_URL) {
+    if(getActiveApiUrl()) {
        const res = await apiCall('uploadFile', {
          fileData: base64,
          fileName: file.name,
@@ -219,7 +219,7 @@ const AVISOS_CACHE_TS_KEY = 'lcp_gdl_avisos_ts';
 
 async function cargarAvisos(){
   loadHistorico();
-  if(API_URL) {
+  if(getActiveApiUrl()) {
     const lastFetch = parseInt(localStorage.getItem(AVISOS_CACHE_TS_KEY)||'0', 10);
     const cacheValid = (Date.now() - lastFetch) < AVISOS_CACHE_TTL;
     if(!cacheValid) {
@@ -372,7 +372,7 @@ async function guardarAviso() {
   }
   saveAvisos();
 
-  if (API_URL) {
+  if (getActiveApiUrl()) {
     const r = await apiCall('saveAviso', nuevoAviso); 
     if (r.ok && r.aviso) {
       const i = avisos.findIndex(a => a.id === r.aviso.id);
@@ -397,7 +397,7 @@ function confirmarBorrarModal(){
   setTimeout(async()=>{
     avisos.splice(adminAvisoIdx,1);
     if(removed&&(removed.tag||removed.texto)){historico.unshift({...removed,archivadoEn:Date.now()});saveHistorico();}
-    saveAvisos();if(API_URL&&removed?.id)await apiCall('deleteAviso',{id:removed.id});
+    saveAvisos();if(getActiveApiUrl()&&removed?.id)await apiCall('deleteAviso',{id:removed.id});
     $('admin-overlay').classList.remove('visible');resetDeleteBtn();renderAvisos();renderAdminAvisos();mostrarToast('✓ Aviso eliminado');
   },30);
 }
@@ -432,7 +432,7 @@ function confirmarBorrarRow(idx){
   setTimeout(async()=>{
     avisos.splice(idx,1);
     if(removed&&(removed.tag||removed.texto)){historico.unshift({...removed,archivadoEn:Date.now()});saveHistorico();}
-    saveAvisos();if(API_URL&&removed?.id)await apiCall('deleteAviso',{id:removed.id});
+    saveAvisos();if(getActiveApiUrl()&&removed?.id)await apiCall('deleteAviso',{id:removed.id});
     renderAvisos();renderAdminAvisos();mostrarToast('✓ Aviso eliminado');
   },30);
 }
@@ -458,7 +458,7 @@ function renderHistorico(){
 async function marcarComoLeido(avisoId,btn){
   if(!avisoId)return;setLeidoLocal(avisoId);
   if(btn){btn.disabled=true;btn.classList.add('leido');btn.textContent='✓ Leído';const m=btn.parentElement.querySelector('.aviso-leido-meta');if(m)m.textContent='Marcado · ahora';}
-  if(API_URL){const r=await apiCall('markLeido',{avisoId});if(r.ok)mostrarToast('✓ Lectura confirmada');}
+  if(getActiveApiUrl()){const r=await apiCall('markLeido',{avisoId});if(r.ok)mostrarToast('✓ Lectura confirmada');}
 }
 function renderAdminLecturas(lecturas){
   const body=$('admin-lecturas-body');if(!body)return;
@@ -481,7 +481,7 @@ function renderAdminLecturas(lecturas){
 }
 async function enviarNewsletterAhora(){
   if(!isLeadership(currentUser))return;
-  if(!API_URL){mostrarToast('⚠️ Conecta Apps Script primero');return;}
+  if(!getActiveApiUrl()){mostrarToast('⚠️ Conecta Apps Script primero');return;}
   mostrarToast('📧 Enviando...');
   const r=await apiCall('sendNewsletterNow',{});
   mostrarToast(r.ok?'✓ Newsletter enviado':'❌ Falló: '+(r.error||'error'));
@@ -507,7 +507,7 @@ SUCURSALES.forEach(nombre=>{
 async function guardarConsolidadoLocal(){
   const data = getTablaData();
   const sem = document.getElementById('semana-label').textContent.trim();
-  if(API_URL) {
+  if(getActiveApiUrl()) {
     const r = await apiCall('saveConsolidado', { semana: sem, data: data });
     if(!r.ok) console.warn('[Consolidado] Error al sincronizar con servidor:', r.error);
   }
@@ -517,7 +517,7 @@ async function guardarConsolidadoLocal(){
 }
 async function cargarConsolidadoLocal(){
   const sem = document.getElementById('semana-label').textContent.trim();
-  if (API_URL) {
+  if (getActiveApiUrl()) {
     const res = await apiGet('getConsolidado', { semana: sem });
     if (res.ok && res.data.length > 0) {
       document.querySelectorAll('#tabla-body tr').forEach((tr,i)=>{
@@ -924,7 +924,7 @@ async function guardarJunta(){
 
   const payload={id,fecha,tipo,tema,acuerdos,responsable,estado,autor};
 
-  if(API_URL){
+  if(getActiveApiUrl()){
     const r=await apiCall('saveJunta',payload);
     if(!r.ok){mostrarToast('❌ '+(r.error||'Error al guardar'));return;}
     payload.id=r.id||id;
