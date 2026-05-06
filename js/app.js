@@ -660,14 +660,35 @@ function getChecklistForDash(){
   const d=getChecklistData();return SUCURSALES.filter(s=>d[s]).length;}
 
 function initDashboard(){
-  const data=getTablaData();
+  let data=getTablaData();
+  const gerente = isGerente(currentUser);
+  if (gerente) {
+    data = data.filter(r => r.nombre === currentUser.sucursal);
+  }
+
   const conDatos=data.filter(r=>r.meta>0&&r.venta>0);
-  const entregas=getChecklistForDash();
-  const entPct=Math.round(entregas/SUCURSALES.length*100);
+  const entregas=gerente ? ( (data.length > 0 && data[0].venta > 0) ? 1 : 0 ) : getChecklistForDash();
+  const totalSuc = gerente ? 1 : SUCURSALES.length;
+  const entPct=Math.round(entregas/totalSuc*100);
 
   // KPIs
-  $('kpi-entregas').textContent=entregas+'/'+SUCURSALES.length;
-  $('kpi-entregas-sub').textContent=entPct+'% completado';
+  $('kpi-entregas').textContent=entregas+'/'+totalSuc;
+  
+  if (gerente) {
+    if($('dash-title')) $('dash-title').textContent = 'Dashboard: ' + currentUser.sucursal;
+    if($('dash-desc')) $('dash-desc').textContent = 'Métricas personalizadas de tu sucursal. Los datos se sincronizan con tu reporte semanal.';
+    if($('kpi-entregas-sub')) $('kpi-entregas-sub').textContent = 'entrega completada';
+    if($('kpi-avance-sub')) $('kpi-avance-sub').textContent = 'avance de tu sucursal';
+    if($('kpi-ticket-sub')) $('kpi-ticket-sub').textContent = 'tu ticket promedio';
+    if($('kpi-trx-sub')) $('kpi-trx-sub').textContent = 'tus transacciones';
+    if($('kpi-criticos-sub')) $('kpi-criticos-sub').textContent = 'confirmación de lectura';
+    if($('dash-chart-ventas-sub')) $('dash-chart-ventas-sub').textContent = 'Tu sucursal vs meta semanal';
+    if($('dash-chart-tendencia-sub')) $('dash-chart-tendencia-sub').textContent = 'Histórico de tu sucursal (6 sem)';
+  } else {
+    if($('dash-title')) $('dash-title').textContent = 'Dashboard Regional';
+    if($('dash-desc')) $('dash-desc').textContent = 'Métricas en tiempo real de las 9 sucursales GDL.';
+    if($('kpi-entregas-sub')) $('kpi-entregas-sub').textContent = entPct+'% completado';
+  }
   $('kpi-bar-entregas').style.width=entPct+'%';
 
   const avances=conDatos.map(r=>r.venta/r.meta*100);

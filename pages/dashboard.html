@@ -1,5 +1,5 @@
-<div class="section-title anim anim-1">Dashboard Regional</div>
-    <div class="section-desc anim anim-2">Métricas en tiempo real de las 9 sucursales GDL. Se actualiza con los datos del consolidado semanal. <span id="dash-update-meta" style="font-weight:bold;color:var(--sage)"></span></div>
+<div class="section-title anim anim-1" id="dash-title">Dashboard Regional</div>
+    <div class="section-desc anim anim-2" id="dash-desc">Métricas en tiempo real de las 9 sucursales GDL. Se actualiza con los datos del consolidado semanal. <span id="dash-update-meta" style="font-weight:bold;color:var(--sage)"></span></div>
 
     <!-- KPI Row -->
     <div class="dash-kpi-row anim anim-2">
@@ -18,13 +18,13 @@
       <div class="kpi-card amber">
         <div class="kpi-label">Ticket promedio</div>
         <div class="kpi-value" id="kpi-ticket">—</div>
-        <div class="kpi-sub">promedio regional</div>
+        <div class="kpi-sub" id="kpi-ticket-sub">promedio regional</div>
         <div class="kpi-bar-wrap"><div class="kpi-bar" id="kpi-bar-ticket" style="background:var(--amber);width:0%"></div></div>
       </div>
       <div class="kpi-card blue">
         <div class="kpi-label">TRX total región</div>
         <div class="kpi-value" id="kpi-trx">—</div>
-        <div class="kpi-sub">transacciones semana</div>
+        <div class="kpi-sub" id="kpi-trx-sub">transacciones semana</div>
         <div class="kpi-bar-wrap"><div class="kpi-bar" id="kpi-bar-trx" style="background:#2980b9;width:0%"></div></div>
       </div>
       <div class="kpi-card rojo">
@@ -46,7 +46,7 @@
     <div class="dash-charts-row anim anim-3" id="dash-charts-row">
       <div class="dash-chart-card">
         <div class="dash-chart-title">Venta vs Meta por sucursal</div>
-        <div class="dash-chart-sub">Semana en curso — actualizado desde el consolidado</div>
+        <div class="dash-chart-sub" id="dash-chart-ventas-sub">Semana en curso — actualizado desde el consolidado</div>
         <div class="chart-container" style="height:240px;">
           <canvas id="chart-ventas"></canvas>
         </div>
@@ -78,7 +78,7 @@
     <!-- KPI sugerido: Tendencia -->
     <div class="dash-chart-card anim anim-5" id="dash-tendencia-row">
       <div class="dash-chart-title">Tendencia de venta neta</div>
-      <div class="dash-chart-sub">Últimas 6 semanas — región GDL</div>
+      <div class="dash-chart-sub" id="dash-chart-tendencia-sub">Últimas 6 semanas — región GDL</div>
       <div class="chart-container" style="height:180px;">
         <canvas id="chart-tendencia"></canvas>
       </div>
