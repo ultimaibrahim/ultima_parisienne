@@ -154,12 +154,14 @@ function cerrarInstrucciones() {
 }
 function toggleChangelog() { $('changelog-panel').classList.toggle('visible'); }
 
-/* ── Fecha y semana actual ────────────────────────────────── */
+/* ── Fecha y semana actual ────────────────────────────────────── */
 function initFechaHoy() {
   const hoy   = new Date();
-  $('fecha-hoy').textContent = hoy.toLocaleDateString('es-MX', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const fechaEl = $('fecha-hoy');
+  if (fechaEl) fechaEl.textContent = hoy.toLocaleDateString('es-MX', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
   const lunes   = new Date(hoy); lunes.setDate(hoy.getDate() - ((hoy.getDay()+6) % 7));
   const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6);
   const fc = {day:'numeric', month:'short'};
-  $('semana-label').textContent = `Sem. ${lunes.toLocaleDateString('es-MX',fc)} – ${domingo.toLocaleDateString('es-MX',fc)} · ${hoy.getFullYear()}`;
+  const semanaEl = $('semana-label');
+  if (semanaEl) semanaEl.textContent = `Sem. ${lunes.toLocaleDateString('es-MX',fc)} – ${domingo.toLocaleDateString('es-MX',fc)} · ${hoy.getFullYear()}`;
 }

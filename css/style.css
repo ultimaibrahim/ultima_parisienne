@@ -203,6 +203,8 @@ nav{background:var(--nav-bg);border-bottom:1px solid rgba(255,255,255,.05);}
 }
 
 /* ══ MAIN ══════════════════════════════════════════════════════ */
+/* Portal oculto por defecto — mostrarPortal() lo activa tras auth */
+header, nav, #main-content, footer { display: none; }
 main{max-width:1240px;margin:0 auto;padding:32px 28px;}
 @media(max-width:640px){main{padding:18px 14px;}}
 .section{display:none;}

@@ -163,15 +163,19 @@ function aplicarRoles() {
   aplicarJuntasRol();
   const navSucTab = $('nav-sucursales-tab');
   const mnSucSpan = document.querySelector('#mn-sucursales span');
+  const miSucBlock   = $('mi-suc-block');
+  const fullSucBlock = $('full-suc-block');
   if (ger) {
     if (navSucTab) navSucTab.textContent = 'Mi Sucursal';
     if (mnSucSpan) mnSucSpan.textContent = 'Mi Sucursal';
-    $('mi-suc-block').style.display  = ''; $('full-suc-block').style.display = 'none';
+    if (miSucBlock)   miSucBlock.style.display   = '';
+    if (fullSucBlock) fullSucBlock.style.display  = 'none';
     construirMiSucursal(u);
   } else {
     if (navSucTab) navSucTab.textContent = 'Sucursales';
     if (mnSucSpan) mnSucSpan.textContent = 'Sucursales';
-    $('mi-suc-block').style.display  = 'none'; $('full-suc-block').style.display = '';
+    if (miSucBlock)   miSucBlock.style.display   = 'none';
+    if (fullSucBlock) fullSucBlock.style.display  = '';
     construirCardsCompletas();
   }
 
@@ -184,6 +188,7 @@ function aplicarRoles() {
     const d = $('regional-desc'); if (d) d.textContent = 'Haz clic en cualquier celda para editar. % avance, ticket y semáforo se calculan automáticamente.';
   }
   renderAvisos();
+  initFechaHoy(); // Re-llamar aquí para asegurar que semana-label ya está en el DOM
   $('stat-version').textContent  = VERSION;
   $('footer-ver').textContent    = VERSION + '-beta · Portal LCP ' + (REGIONES[u.region]?.nombre || 'GDL') + ' · 2026';
 }

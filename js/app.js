@@ -63,7 +63,7 @@ async function alternarMiEntrega(){
   if(!currentUser||!currentUser.sucursal)return;
   const d=getChecklistData();d[currentUser.sucursal]=!d[currentUser.sucursal];
   setChecklistData(d);actualizarMiSucursalStatus();
-  if(API_URL)await apiCall('setEntrega',{sucursal:currentUser.sucursal,entrego:d[currentUser.sucursal]});
+  if(getActiveApiUrl())try{await apiCall('setEntrega',{sucursal:currentUser.sucursal,entrego:d[currentUser.sucursal]});}catch(e){console.error(e);}
 }
 function actualizarMiSucursalStatus(){
   if(!currentUser||!currentUser.sucursal)return;
@@ -75,9 +75,12 @@ function actualizarMiSucursalStatus(){
 
 /* ── SUCURSALES CARDS ─────────────────────────────────────── */
 function construirCardsCompletas(){
-  const grid=$('sucursales-grid');if(grid.dataset.built==='1')return;
+  const grid=$('sucursales-grid');if(!grid)return;
+  if(!SUCURSALES||!SUCURSALES.length)return;
   grid.innerHTML=SUCURSALES.map(nombre=>{
-    const d=SUCURSAL_DATA[nombre],dataNombre=(nombre+' '+d.code).toLowerCase();
+    const d=SUCURSAL_DATA[nombre];
+    if(!d)return '';
+    const dataNombre=(nombre+' '+d.code).toLowerCase();
     return`<div class="card" data-nombre="${dataNombre}">
       <div class="card-header"><span class="card-title">${escapeHtml(nombre)}</span><span class="card-code">${d.code}</span></div>
       <div class="card-body">
@@ -90,7 +93,6 @@ function construirCardsCompletas(){
         <button class="copy-btn" onclick="copiarLink('https://drive.google.com/drive/folders/${d.root}',this)">📋 Copiar link</button>
       </div></div>`;
   }).join('');
-  grid.dataset.built='1';
 }
 function construirMiSucursal(u){
   const suc=u.sucursal;if(!suc||!SUCURSAL_DATA[suc])return;
@@ -823,9 +825,15 @@ async function cargarJuntas(){
   if(listEl)listEl.style.display='none';
   if(emptyEl)emptyEl.style.display='none';
 
-  if(API_URL){
-    const r=await apiGet('juntas');
-    juntasData=r.ok&&Array.isArray(r.data)?r.data:JUNTAS_DEMO;
+  const _apiUrl = getActiveApiUrl();
+  if(_apiUrl){
+    try {
+      const r=await apiGet('juntas');
+      juntasData = (r.ok && Array.isArray(r.data) && r.data.length > 0) ? r.data : JUNTAS_DEMO;
+    } catch(e) {
+      console.warn('[cargarJuntas] Sin red, usando demo:', e);
+      juntasData = JUNTAS_DEMO;
+    }
   } else {
     juntasData=JUNTAS_DEMO;
   }

@@ -1,38 +1,22 @@
-// Portal GDL — Service Worker v1.0
-// Estrategia: Cache-First para assets estáticos, Network-First para API
+// Portal GDL — Service Worker v2.0
+// Estrategia: Network-First para HTML/JS (siempre frescos), Cache-First para fonts/CDN
 
-const CACHE_NAME = 'portal-gdl-v1';
-const ASSETS = [
-  '/ultima_parisienne/',
-  '/ultima_parisienne/index.html',
-  '/ultima_parisienne/css/style.css',
-  '/ultima_parisienne/js/config.js',
-  '/ultima_parisienne/js/api.js',
-  '/ultima_parisienne/js/auth.js',
-  '/ultima_parisienne/js/ui.js',
-  '/ultima_parisienne/js/app.js',
-  '/ultima_parisienne/pages/inicio.html',
-  '/ultima_parisienne/pages/dashboard.html',
-  '/ultima_parisienne/pages/sucursales.html',
-  '/ultima_parisienne/pages/regional.html',
-  '/ultima_parisienne/pages/juntas.html',
-  '/ultima_parisienne/pages/formatos.html',
-  '/ultima_parisienne/pages/admin-section.html',
-  '/ultima_parisienne/pages/about.html',
+const CACHE_NAME = 'portal-gdl-v2';
+const STATIC_ASSETS = [
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
   'https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap'
 ];
 
-// Instalar: cachear todos los assets estáticos
+// Instalar: solo cachear CDN/fonts estáticos que no cambian
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      return Promise.allSettled(ASSETS.map(url => cache.add(url).catch(() => {})));
+      return Promise.allSettled(STATIC_ASSETS.map(url => cache.add(url).catch(() => {})));
     }).then(() => self.skipWaiting())
   );
 });
 
-// Activar: limpiar caches viejos
+// Activar: limpiar caches viejos (v1 y cualquier otro)
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -41,33 +25,54 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch: cache-first para assets, network-first para API de Apps Script
+// Fetch handler
 self.addEventListener('fetch', event => {
   const url = event.request.url;
 
   // Apps Script / Google API → siempre network, sin caché
-  if (url.includes('script.google.com') || url.includes('googleapis.com')) {
-    event.respondWith(fetch(event.request).catch(() =>
-      new Response(JSON.stringify({ ok: false, error: 'Sin conexión a internet' }), {
-        headers: { 'Content-Type': 'application/json' }
-      })
-    ));
+  if (url.includes('script.google.com') || url.includes('googleapis.com/upload')) {
+    event.respondWith(
+      fetch(event.request).catch(() =>
+        new Response(JSON.stringify({ ok: false, error: 'Sin conexión a internet' }), {
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+    );
     return;
   }
 
-  // Assets estáticos → cache-first con fallback a network
+  // Fonts de Google y CDN → cache-first (no cambian)
+  if (url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com') || url.includes('cdn.jsdelivr.net')) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(response => {
+          if (response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // HTML, JS, CSS del portal → Network-First con fallback a caché
+  // Esto garantiza que siempre se sirve la versión más reciente del portal
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(response => {
-        // Solo cachear respuestas exitosas de GET
-        if (event.request.method === 'GET' && response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        }
-        return response;
-      }).catch(() => {
-        // Offline fallback: devolver index.html para cualquier navegación
+    fetch(event.request).then(response => {
+      // Si la red responde bien, actualizar la caché en background
+      if (event.request.method === 'GET' && response.status === 200) {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+      }
+      return response;
+    }).catch(() => {
+      // Sin red: intentar desde caché
+      return caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        // Fallback de navegación: devolver index.html desde caché
         if (event.request.mode === 'navigate') {
           return caches.match('/ultima_parisienne/index.html');
         }
