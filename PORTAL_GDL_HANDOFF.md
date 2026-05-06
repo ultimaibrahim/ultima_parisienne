@@ -354,6 +354,7 @@ La arquitectura actual (Apps Script + Sheets) soporta bien hasta ~50 gerentes. C
 | v0.6.0 | May 01 | Debounce consolidado, empty states dashboard, indicador última actualización. |
 | v0.6.1 | May 02 | Code.gs v2.0: USERS_DB con SHA-256, tokens UUID, sendNewsletterNow, setupHojaInicial. Sheet migrado a PortalGDL_db (`1tje-3xwR...`). PWA: sw.js + manifest. Badge conectividad en login. Cache TTL avisos 5min. Gráfica tendencia con datos reales. |
 | v0.7.0 | May 03 | **Modularización JS:** config.js / api.js / auth.js / ui.js / app.js. **Multi-región:** REGIONES con GDL activa, CDMX y MTY preparadas. SUCURSALES.length dinámico. `api.js` lee URL de la región activa. Título genérico "Portal Operativo LCP". |
+| v0.7.1 | May 05 | **Fixes críticos:** autenticación `hashMatch` sin bypass, `saveAviso` restringido a leadership, `markLeido` guarda usuario real (correo/nombre/sucursal). **Fixes medios:** eliminadas funciones duplicadas en `app.js`, Service Worker cachea todos los módulos JS y pages, umbrales de ticket movidos a `config.js`. |
 
 ---
 
@@ -374,3 +375,170 @@ Estas decisiones ya se tomaron y no se deben revertir sin discutirlo:
 
 *Portal Operativo LCP · La Crêpe Parisienne · Grupo MYT / Corporativo Alancar*  
 *Actualizado: Mayo 2026 · v0.7.0*
+
+---
+
+## 13. Bugs verificados en código — OpenCode debe resolver antes de agregar features
+
+> Esta sección fue generada por QA independiente comparando el código fuente real contra el handoff. Todos los bugs están confirmados con número de línea en el repo.
+
+### 🔴 Bug crítico — autenticación rota en producción
+
+**`Code.gs` línea 88 — `hashMatch` acepta cualquier contraseña**
+
+```javascript
+// CÓDIGO ACTUAL (INSEGURO):
+const hashMatch = (user.passhash === hash)
+  || user.passhash.startsWith('f9e9b5b8')
+  || user.passhash.startsWith('a2b3c4d5')
+  || user.passhash.startsWith('c7b5f3e9');
+```
+
+Los tres prefijos son exactamente los hashes de todos los usuarios actuales en `USERS_DB`. Cualquier persona que conozca un correo válido (ej. `oliver@lcp.mx`) puede entrar con cualquier contraseña. El login nunca falla para usuarios registrados.
+
+**Fix:** eliminar las tres condiciones `startsWith`. Dejar solo `user.passhash === hash`.
+
+```javascript
+// CORRECTO:
+const hashMatch = (user.passhash === hash);
+```
+
+---
+
+### 🔴 Bug crítico — endpoint `saveAviso` accesible por gerentes
+
+**`Code.gs` línea 187 — permiso incorrecto**
+
+```javascript
+function saveAviso({ id, tag, fecha, autor, texto, token }) {
+  requireGerente(token);  // ← INCORRECTO. Gerentes no deben crear avisos.
+```
+
+`requireGerente` incluye el rol `gerente` además de leadership. Un gerente puede crear, editar y eliminar avisos llamando directamente al endpoint aunque el frontend lo bloquee visualmente.
+
+**Fix:** cambiar `requireGerente(token)` por `requireLeadership(token)` en `saveAviso`.
+
+---
+
+### 🟡 Bug medio — panel de lecturas críticas siempre vacío
+
+**`Code.gs` línea 241 — `markLeido` guarda token en lugar de correo**
+
+```javascript
+ss.appendRow([avisoId, token, new Date().toISOString()]);
+// La Sheet Lecturas espera: avisoId | userCorreo | userNombre | userSucursal | timestamp
+// Pero se está guardando: avisoId | tokenUUID | timestamp (solo 3 columnas)
+```
+
+El panel Admin intenta mostrar `userNombre` y `userSucursal` de cada lectura, pero esos campos son `undefined` porque nunca se guardaron. El registro de auditoría existe pero es ilegible.
+
+**Fix:** resolver el token a su usuario en `markLeido` antes de guardar:
+
+```javascript
+function markLeido({ avisoId, token }) {
+  const session = getSession(token);  // resuelve token → usuario
+  if (!session) throw new Error('Sesión inválida');
+  const { correo, nombre, sucursal } = session;
+  // ... deduplicar por correo, no por token ...
+  ss.appendRow([avisoId, correo, nombre, sucursal, new Date().toISOString()]);
+}
+```
+
+---
+
+### 🟡 Bug medio — funciones duplicadas entre módulos
+
+**`app.js` líneas 109 y 156 / `ui.js` líneas 32 y 83**
+
+`showSection()` e `irAMiSucursal()` están definidas en ambos archivos. La de `ui.js` sobrescribe a la de `app.js` porque se carga después (orden en `index.html`: `ui.js` → `app.js` — espera, `app.js` se carga último y sobrescribe a `ui.js`).
+
+**Canónica:** la de `ui.js` es la correcta — tiene el guard de `currentUser`. La de `app.js` no tiene ese guard.
+
+**Fix:** eliminar `showSection()` e `irAMiSucursal()` de `app.js`. Dejar solo las de `ui.js`.
+
+> ⚠️ Verificar el orden de carga en `index.html` antes de tocar esto. Si `app.js` se carga después de `ui.js`, la de `app.js` es la que está activa actualmente — y es la versión sin guard.
+
+---
+
+### 🟡 Bug medio — `pages/` se carga dinámicamente: editar ahí, no en `index.html`
+
+Las secciones del portal usan `data-page="pages/nombre.html"` y se cargan en runtime:
+
+```html
+<section id="inicio" class="section active" data-page="pages/inicio.html"></section>
+<section id="dashboard" class="section" data-page="pages/dashboard.html"></section>
+<!-- etc. -->
+```
+
+**Regla crítica para OpenCode:** cualquier cambio de HTML en las secciones (inicio, dashboard, sucursales, regional, juntas, formatos, admin-section, about) se hace en `pages/nombre.html`, NO en `index.html`. Editar `index.html` para cambiar contenido de secciones no tiene efecto.
+
+La única sección que no usa `data-page` es la del login — esa sí vive en `index.html`.
+
+---
+
+### 🟡 Bug medio — Service Worker no cachea los módulos JS
+
+**`sw.js` — array `ASSETS` incompleto**
+
+```javascript
+const ASSETS = [
+  '/ultima_parisienne/',
+  '/ultima_parisienne/index.html',
+  '/ultima_parisienne/css/style.css',
+  '/ultima_parisienne/js/app.js',   // ← solo app.js
+  // falta: config.js, api.js, auth.js, ui.js, todos los pages/
+];
+```
+
+Si el portal carga offline, los módulos `config.js`, `api.js`, `auth.js` y `ui.js` no están en caché. El portal falla completamente con `ReferenceError` aunque el service worker esté instalado.
+
+**Fix:** agregar al array `ASSETS`:
+```javascript
+'/ultima_parisienne/js/config.js',
+'/ultima_parisienne/js/api.js',
+'/ultima_parisienne/js/auth.js',
+'/ultima_parisienne/js/ui.js',
+'/ultima_parisienne/pages/inicio.html',
+'/ultima_parisienne/pages/dashboard.html',
+'/ultima_parisienne/pages/sucursales.html',
+'/ultima_parisienne/pages/regional.html',
+'/ultima_parisienne/pages/juntas.html',
+'/ultima_parisienne/pages/formatos.html',
+'/ultima_parisienne/pages/admin-section.html',
+'/ultima_parisienne/pages/about.html',
+```
+
+---
+
+### 🔵 Deuda técnica — umbrales del semáforo de ticket no configurables
+
+**`app.js` líneas 706-707**
+
+```javascript
+if(ticket >= 150) tend = '🟢 Alza';
+else if(ticket >= 135) tend = '🟡 Estable';
+else tend = '🔴 Baja';
+```
+
+Umbrales hardcodeados. Si el ticket promedio real de LCP está en un rango distinto, todas las sucursales aparecen en rojo permanentemente. Ibrahim debe confirmar cuáles son los valores reales antes de que OpenCode los deje intactos o los modifique.
+
+**Fix sugerido:** mover a `config.js`:
+```javascript
+TICKET_UMBRALES: { verde: 150, amarillo: 135 }
+```
+
+---
+
+### ✅ Estado de los 7 puntos del QA anterior
+
+| # | Punto | Estado en v0.7.0 |
+|---|---|---|
+| 1 | `hashMatch` con `startsWith` — bypass de auth | ❌ **Persiste** — línea 88 de `Code.gs` |
+| 2 | `saveAviso` usa `requireGerente` en lugar de `requireLeadership` | ❌ **Persiste** — línea 187 de `Code.gs` |
+| 3 | `markLeido` guarda token en lugar de correo | ❌ **Persiste** — línea 241 de `Code.gs` |
+| 4 | Funciones duplicadas `showSection` / `irAMiSucursal` | ❌ **Persiste** — en ambos módulos |
+| 5 | `pages/` — estado ambiguo (¿dinámico o residual?) | ✅ **Resuelto** — confirmado dinámico via `data-page` |
+| 6 | Service Worker no cachea todos los módulos JS | ❌ **Persiste** — solo `app.js` en `ASSETS` |
+| 7 | Umbrales semáforo hardcodeados | ❌ **Persiste** — líneas 706-707 de `app.js` |
+
+6 de 7 puntos persisten en v0.7.0. El único resuelto es el estado de `pages/`.

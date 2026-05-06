@@ -85,7 +85,7 @@ function doLogin({ correo, password }) {
   if (!user) return { ok: false, error: 'Credenciales incorrectas' };
   // Si el hash del DB es placeholder (no está configurado), se acepta en modo desarrollo SOLO
   // Para produccion real, los hashes deben estar correctamente calculados con hashStr('password')
-  const hashMatch = (user.passhash === hash) || user.passhash.startsWith('f9e9b5b8') || user.passhash.startsWith('a2b3c4d5') || user.passhash.startsWith('c7b5f3e9');
+  const hashMatch = (user.passhash === hash);
   if (!hashMatch) return { ok: false, error: 'Credenciales incorrectas' };
   
   // Generar token de sesión único
@@ -184,7 +184,7 @@ function getAvisos() {
 }
 
 function saveAviso({ id, tag, fecha, autor, texto, token }) {
-  requireGerente(token);
+  requireLeadership(token);
   const ss = getSheet(TAB.AVISOS);
   if (!ss) throw new Error("Pestaña Avisos no existe");
 
@@ -230,14 +230,27 @@ function getLecturas(avisoId) {
 
 function markLeido({ avisoId, token }) {
   if (!avisoId || !token) throw new Error("Faltan avisoId o token");
+
+  let correo;
+  if (token.includes('@')) {
+    correo = token;
+  } else {
+    const session = getSessionUser(token);
+    correo = session.correo;
+  }
+
+  const user = USERS_DB.find(u => u.correo === correo);
+  const nombre = user ? user.nombre : '';
+  const sucursal = user ? (user.sucursal || '') : '';
+
   const ss = getSheet(TAB.LECTURAS);
   if (!ss) throw new Error("Pestaña Lecturas no existe");
-  // Evitar duplicados
+  // Evitar duplicados por correo
   const all = ss.getDataRange().getValues();
   for (let i = 1; i < all.length; i++) {
-    if (all[i][0] === avisoId && all[i][1] === token) return { ok: true }; // ya leído
+    if (all[i][0] === avisoId && all[i][1] === correo) return { ok: true }; // ya leído
   }
-  ss.appendRow([avisoId, token, new Date().toISOString()]);
+  ss.appendRow([avisoId, correo, nombre, sucursal, new Date().toISOString()]);
   return { ok: true };
 }
 
@@ -463,7 +476,7 @@ function setupHojaInicial() {
     [TAB.AVISOS]:      ["id", "tag", "fecha", "autor", "texto", "activo"],
     [TAB.JUNTAS]:      ["id", "fecha", "tipo", "tema", "acuerdos", "responsable", "estado", "autor"],
     [TAB.CONSOLIDADO]: ["semana", "nombre", "meta", "venta", "acumulado", "trx", "entrego", "ts"],
-    [TAB.LECTURAS]:    ["avisoId", "correo", "ts"]
+    [TAB.LECTURAS]:    ["avisoId", "userCorreo", "userNombre", "userSucursal", "timestamp"]
   };
 
   Object.entries(tabs).forEach(([name, headers]) => {

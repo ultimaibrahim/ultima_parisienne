@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════ */
 
 // ── Versión ─────────────────────────────────────────────────────
-const VERSION = 'v0.7.0';
+const VERSION = 'v0.7.1';
 
 // ── LocalStorage Keys ───────────────────────────────────────────
 const OB_KEY    = 'lcp_gdl_ob_v1';
@@ -23,6 +23,7 @@ const AVISOS_CACHE_TS_KEY = 'lcp_gdl_avisos_ts';
 const AVISOS_CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
 const NUEVO_WINDOW_MS = 86400000;
+const TICKET_UMBRALES = { verde: 150, amarillo: 135 };
 
 // ── Roles ────────────────────────────────────────────────────────
 const LEADERSHIP_ROLES = ['admin', 'analista', 'regional', 'zonal'];
