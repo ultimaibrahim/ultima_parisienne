@@ -25,26 +25,19 @@ const GERENTE_ROLES    = [...LEADERSHIP_ROLES, "gerente"];
 // Hashes de contraseñas: SHA-256 hex. Calculado en Apps Script.
 // Para añadir usuarios nuevos usa: hashStr('lacontrasena')
 const USERS_DB = [
-  {correo:'oliver@lcp.mx',                            passhash:'f9e9b5b8c3cff18f2b5c15c3b7a8a5c1d3c1e8a2b6d3f0a9e4c7b2d1f5a8e3c9', nombre:'Oliver González',          rol:'regional', sucursal:null},
-  {correo:'ultima.ibrahim@proton.me',                  passhash:'a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3', nombre:'Ibrahim Garcia',            rol:'admin',    sucursal:null},
-  {correo:'oliver.gonzalez@lacrepeparisienne.com',     passhash:'a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3', nombre:'Oliver Gonzalez',          rol:'regional', sucursal:null},
-  {correo:'andares@lacrepeparisienne.com',             passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Andares',          rol:'gerente',  sucursal:'Andares'},
-  {correo:'mercadoandares@lacrepeparisienne.com',      passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Mercado Andares',  rol:'gerente',  sucursal:'Mercado Andares'},
-  {correo:'laperla@lacrepeparisienne.com',             passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente La Perla',         rol:'gerente',  sucursal:'La Perla'},
-  {correo:'forumtlaquepaque@lacrepeparisienne.com',    passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Forum Tlaquepaque',rol:'gerente',  sucursal:'Forum Tlaquepaque'},
-  {correo:'plazapatria@lacrepeparisienne.com',         passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Plaza Patria',     rol:'gerente',  sucursal:'Plaza Patria'},
-  {correo:'galeriasguadalajara@lacrepeparisienne.com', passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Galerías GDL',    rol:'gerente',  sucursal:'Galerías Guadalajara'},
-  {correo:'midtown@lacrepeparisienne.com',             passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Midtown',          rol:'gerente',  sucursal:'Midtown'},
-  {correo:'viaviva@lacrepeparisienne.com',             passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Via Viva',         rol:'gerente',  sucursal:'Via Viva'},
-  {correo:'galeriassantaanita@lacrepeparisienne.com',  passhash:'c7b5f3e9d2a8c1b4f6e0d7a3b9c5f2e8d1a6c3b0f5e7d4a2c9b6f1e3d8a5c2b7', nombre:'Gerente Santa Anita',      rol:'gerente',  sucursal:'Santa Anita'},
+  {correo:'oliver@lcp.mx',                            passhash:'e47ee08856e7f0f084857f3605323c885e5e79563974ab9c34987637ef7df230', nombre:'Oliver González',          rol:'regional', sucursal:null},
+  {correo:'ultima.ibrahim@proton.me',                  passhash:'e47ee08856e7f0f084857f3605323c885e5e79563974ab9c34987637ef7df230', nombre:'Ibrahim Garcia',            rol:'admin',    sucursal:null},
+  {correo:'oliver.gonzalez@lacrepeparisienne.com',     passhash:'e47ee08856e7f0f084857f3605323c885e5e79563974ab9c34987637ef7df230', nombre:'Oliver Gonzalez',          rol:'regional', sucursal:null},
+  {correo:'andares@lacrepeparisienne.com',             passhash:'d00cabd9393d8995d445f6d74f597bcd12f3f3aa5c90d0c4ca95cf12abc490a5', nombre:'Gerente Andares',          rol:'gerente',  sucursal:'Andares'},
+  {correo:'mercadoandares@lacrepeparisienne.com',      passhash:'d00cabd9393d8995d445f6d74f597bcd12f3f3aa5c90d0c4ca95cf12abc490a5', nombre:'Gerente Mercado Andares',  rol:'gerente',  sucursal:'Mercado Andares'},
+  {correo:'laperla@lacrepeparisienne.com',             passhash:'d00cabd9393d8995d445f6d74f597bcd12f3f3aa5c90d0c4ca95cf12abc490a5', nombre:'Gerente La Perla',         rol:'gerente',  sucursal:'La Perla'},
+  {correo:'forumtlaquepaque@lacrepeparisienne.com',    passhash:'d00cabd9393d8995d445f6d74f597bcd12f3f3aa5c90d0c4ca95cf12abc490a5', nombre:'Gerente Forum Tlaquepaque',rol:'gerente',  sucursal:'Forum Tlaquepaque'},
+  {correo:'plazapatria@lacrepeparisienne.com',         passhash:'d00cabd9393d8995d445f6d74f597bcd12f3f3aa5c90d0c4ca95cf12abc490a5', nombre:'Gerente Plaza Patria',     rol:'gerente',  sucursal:'Plaza Patria'},
+  {correo:'galeriasguadalajara@lacrepeparisienne.com', passhash:'d00cabd9393d8995d445f6d74f597bcd12f3f3aa5c90d0c4ca95cf12abc490a5', nombre:'Gerente Galerías GDL',    rol:'gerente',  sucursal:'Galerías Guadalajara'},
+  {correo:'midtown@lacrepeparisienne.com',             passhash:'d00cabd9393d8995d445f6d74f597bcd12f3f3aa5c90d0c4ca95cf12abc490a5', nombre:'Gerente Midtown',          rol:'gerente',  sucursal:'Midtown'},
+  {correo:'viaviva@lacrepeparisienne.com',             passhash:'d00cabd9393d8995d445f6d74f597bcd12f3f3aa5c90d0c4ca95cf12abc490a5', nombre:'Gerente Via Viva',         rol:'gerente',  sucursal:'Via Viva'},
+  {correo:'galeriassantaanita@lacrepeparisienne.com',  passhash:'d00cabd9393d8995d445f6d74f597bcd12f3f3aa5c90d0c4ca95cf12abc490a5', nombre:'Gerente Santa Anita',      rol:'gerente',  sucursal:'Santa Anita'},
 ];
-
-function getDynamicUsers() {
-  const store = PropertiesService.getScriptProperties();
-  const raw = store.getProperty('DYN_USERS');
-  if (!raw) return [];
-  try { return JSON.parse(raw); } catch (e) { return []; }
-}
 
 // ════════════════════════════════════════════════════════════════
 //  HELPERS INTERNOS
@@ -87,7 +80,7 @@ function hashStr(str) {
 /** LOGIN: verifica credenciales, crea token de sesión y lo persiste en PropertiesService */
 function doLogin({ correo, password }) {
   const hash = hashStr(password || '');
-  const allUsers = [...USERS_DB, ...getDynamicUsers()];
+  const allUsers = [...USERS_DB];
   const user = allUsers.find(u => u.correo === (correo || '').toLowerCase());
   // Si el hash no coincide, rechazar
   if (!user) return { ok: false, error: 'Credenciales incorrectas' };
@@ -175,9 +168,7 @@ function doPost(e) {
       case "markLeido":       return resp(markLeido(body));
       case "setEntrega":      return resp(setEntrega(body));
       case "sendNewsletterNow": return resp(sendNewsletterNow(body));
-      case "getUsers":        return resp(getUsers(body));
-      case "saveUser":        return resp(saveUser(body));
-      case "deleteUser":      return resp(deleteUser(body));
+
       default:                return resp({ ok: false, error: "Acción POST desconocida: " + action });
     }
   } catch (err) {
@@ -576,63 +567,4 @@ function sendNewsletterNow({ token }) {
 //  ADMIN: CRUD USUARIOS
 // ════════════════════════════════════════════════════════════════
 
-function getUsers({ token }) {
-  requireLeadership(token);
-  const all = [...USERS_DB, ...getDynamicUsers()].map(u => {
-    const safeUser = {...u};
-    delete safeUser.passhash;
-    return safeUser;
-  });
-  return { ok: true, data: all };
-}
-
-function saveUser({ correo, password, nombre, rol, sucursal, token }) {
-  requireLeadership(token);
-  const store = PropertiesService.getScriptProperties();
-  let dyn = getDynamicUsers();
-  
-  if (USERS_DB.find(u => u.correo === correo.toLowerCase())) {
-    return { ok: false, error: 'Cannot modify system defaults' };
-  }
-  
-  const idx = dyn.findIndex(u => u.correo === correo.toLowerCase());
-  const userObj = { correo: correo.toLowerCase(), nombre, rol, sucursal };
-  
-  if (password) userObj.passhash = hashStr(password);
-  else if (idx >= 0) userObj.passhash = dyn[idx].passhash;
-  else return { ok: false, error: 'Password is required' };
-  
-  if (idx >= 0) dyn[idx] = userObj;
-  else dyn.push(userObj);
-  
-  store.setProperty('DYN_USERS', JSON.stringify(dyn));
-  return { ok: true };
-}
-
-function deleteUser({ correo, token }) {
-  requireLeadership(token);
-  const store = PropertiesService.getScriptProperties();
-  if (USERS_DB.find(u => u.correo === correo.toLowerCase())) {
-    return { ok: false, error: 'Cannot delete system defaults' };
-  }
-  let dyn = getDynamicUsers();
-  dyn = dyn.filter(u => u.correo !== correo.toLowerCase());
-  store.setProperty('DYN_USERS', JSON.stringify(dyn));
-  return { ok: true };
-}
-
-// ════════════════════════════════════════════════════════════════
-//  UTILIDAD: Generar hashes para actualizar contraseñas
-//  Ejecutar desde el editor: generateHashes()
-// ════════════════════════════════════════════════════════════════
-
-function generateHashes() {
-  const pairs = [
-    ['lcp2026',        'Contraseña admin/regional'],
-    ['grupomyt2025',   'Contraseña gerentes']
-  ];
-  pairs.forEach(([pw, label]) => {
-    Logger.log(label + ': ' + hashStr(pw));
-  });
-  Logger.log('Copia estos valores al array USERS_DB en el campo passhash.');
-}
+// CRUD descartado

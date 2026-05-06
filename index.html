@@ -78,13 +78,13 @@
       </div>
       <button class="login-btn" id="login-btn-el" onclick="doLogin()" data-testid="login-submit-btn">Entrar al portal →</button>
       <div class="login-err" id="login-err" role="alert">Correo o contraseña incorrectos.</div>
-      <div class="login-demo-hint" id="login-demo-hint">
-        <strong>Modo demo</strong> — Apps Script no conectado.<br>
-        Prueba: <code>oliver@lcp.mx</code> / <code>lcp2026</code>
-      </div>
-      <div id="login-server-badge" style="display:none;margin-top:10px;font-size:11px;font-weight:600;text-align:center;opacity:0.75;"></div>
+      <!-- El status de servidor se movió al footer del login -->
     </div>
-    <div class="login-footer">¿Problemas? Escríbele a Saúl Ibrahim.</div>
+    <div class="login-footer">
+      ¿Problemas? Escríbele a Saúl Ibrahim.<br>
+      <span id="login-server-badge" style="display:none;font-size:11px;opacity:0.7;"></span>
+      <span id="login-demo-hint" style="display:none;font-size:11px;opacity:0.7;"><br>Modo local activado</span>
+    </div>
   </div>
 </div>
 

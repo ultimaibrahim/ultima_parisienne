@@ -155,19 +155,22 @@ function aplicarRoles() {
     $('btn-editar-avisos').style.display = '';
     $('nav-admin').style.display         = '';
     $('checklist-entrega').style.display = '';
-    renderChecklist(); renderAdminAvisos(); renderAdminLecturas([]); renderAdminUsers();
+    renderChecklist(); renderAdminAvisos(); renderAdminLecturas([]);
   } else {
     if ($('admin-section').classList.contains('active')) showSection('inicio', null);
   }
 
   aplicarJuntasRol();
   const navSucTab = $('nav-sucursales-tab');
+  const mnSucSpan = document.querySelector('#mn-sucursales span');
   if (ger) {
-    navSucTab.textContent = 'Mi Sucursal';
+    if (navSucTab) navSucTab.textContent = 'Mi Sucursal';
+    if (mnSucSpan) mnSucSpan.textContent = 'Mi Sucursal';
     $('mi-suc-block').style.display  = ''; $('full-suc-block').style.display = 'none';
     construirMiSucursal(u);
   } else {
-    navSucTab.textContent = 'Sucursales';
+    if (navSucTab) navSucTab.textContent = 'Sucursales';
+    if (mnSucSpan) mnSucSpan.textContent = 'Sucursales';
     $('mi-suc-block').style.display  = 'none'; $('full-suc-block').style.display = '';
     construirCardsCompletas();
   }
