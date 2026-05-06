@@ -214,8 +214,7 @@ function saveHistorico(){localStorage.setItem(HIST_KEY,JSON.stringify(historico)
 function getLeidosLocales(){try{return JSON.parse(localStorage.getItem(LEIDO_KEY)||'{}');}catch{return{};}}
 function setLeidoLocal(id){const m=getLeidosLocales();m[id]=Date.now();localStorage.setItem(LEIDO_KEY,JSON.stringify(m));}
 
-const AVISOS_CACHE_TTL = 5 * 60 * 1000; // 5 minutos
-const AVISOS_CACHE_TS_KEY = 'lcp_gdl_avisos_ts';
+const AVISOS_CACHE_TS_KEY = 'lcp_gdl_avisos_ts'; // AVISOS_CACHE_TTL viene de config.js
 
 async function cargarAvisos(){
   loadHistorico();
