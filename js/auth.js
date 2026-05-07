@@ -82,9 +82,12 @@ async function doLogin() {
     if (resp.ok && resp.user) { user = resp.user; token = resp.token; }
   }
 
-  // 2. Fallback offline: USUARIOS_LOCALES (para demo y sin conexión)
-  if (!user) {
-    user = USUARIOS_LOCALES.find(u => u.correo === correo && u.password === password) || null;
+  // 2. Sin conexión al servidor: no se permite login offline por seguridad
+  if (!user && !API_URL) {
+    errEl.textContent = 'Servidor no disponible. Intenta más tarde.';
+    errEl.classList.add('visible');
+    btnEl.disabled = false; btnEl.textContent = 'Entrar al portal →';
+    return;
   }
 
   btnEl.disabled = false; btnEl.textContent = 'Entrar al portal →';

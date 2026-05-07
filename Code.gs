@@ -237,16 +237,12 @@ function getLecturas(avisoId) {
 
 function markLeido({ avisoId, token }) {
   if (!avisoId || !token) throw new Error("Faltan avisoId o token");
+  if (token === 'offline_demo') throw new Error("No autorizado en modo offline");
 
-  let correo;
-  if (token.includes('@')) {
-    correo = token;
-  } else {
-    const session = getSessionUser(token);
-    correo = session.correo;
-  }
+  const session = getSessionUser(token);
+  const correo = session.correo;
 
-  const allUsers = [...USERS_DB, ...getDynamicUsers()];
+  const allUsers = [...USERS_DB];
   const user = allUsers.find(u => u.correo === correo);
   const nombre = user ? user.nombre : '';
   const sucursal = user ? (user.sucursal || '') : '';
@@ -369,10 +365,11 @@ function uploadFile(payload) {
   if (!DRIVE_FOLDER_ID) throw new Error("DRIVE_FOLDER_ID no configurado en Code.gs");
 
   const base64Data = payload.fileData.split(',')[1];
+  const safeFileName = (payload.fileName || 'archivo').replace(/[\\\/: *?"<>|]/g, '_').replace(/\.\./g, '_');
   const blob = Utilities.newBlob(
     Utilities.base64Decode(base64Data),
     payload.mimeType,
-    payload.fileName
+    safeFileName
   );
 
   // Carpeta de la sucursal dentro de la carpeta raíz
@@ -521,7 +518,7 @@ function sendNewsletterNow({ token }) {
   const avisos = getAvisos().filter(a => a.critico || a.activo !== false);
   if (!avisos.length) return { ok: true, sent: 0, msg: "Sin avisos activos para enviar" };
 
-  const allUsers = [...USERS_DB, ...getDynamicUsers()];
+  const allUsers = [...USERS_DB];
   const gerentes = allUsers.filter(u => u.rol === 'gerente');
   const destinatarios = gerentes.map(u => u.correo);
 

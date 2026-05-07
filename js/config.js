@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════ */
 
 // ── Versión ─────────────────────────────────────────────────────
-const VERSION = 'v0.8.1';
+const VERSION = 'v0.8.2';
 
 // ── LocalStorage Keys ───────────────────────────────────────────
 const OB_KEY    = 'lcp_gdl_ob_v1';
@@ -160,23 +160,11 @@ function activarRegion(regionId) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  USUARIOS — Fallback local (solo para modo offline/demo)
-//  La autenticación real ocurre en Apps Script (Code.gs → USERS_DB)
+//  USUARIOS — Fallback local eliminado por seguridad
+//  Las contraseñas en texto plano fueron removidas (Fix QA v0.8.2).
+//  Toda autenticación requiere conexión al backend de Apps Script.
 // ════════════════════════════════════════════════════════════════
-const USUARIOS_LOCALES = [
-  {id:1,  nombre:'Oliver González',          correo:'oliver@lcp.mx',                              sucursal:null,                  rol:'regional', region:'GDL', password:'lcp2026'},
-  {id:3,  nombre:'Gerente Santa Anita',      correo:'galeriassantaanita@lacrepeparisienne.com',    sucursal:'Santa Anita',         rol:'gerente',  region:'GDL', password:'grupomyt2025'},
-  {id:4,  nombre:'Gerente Andares',          correo:'andares@lacrepeparisienne.com',               sucursal:'Andares',             rol:'gerente',  region:'GDL', password:'grupomyt2025'},
-  {id:5,  nombre:'Gerente Mercado Andares',  correo:'mercadoandares@lacrepeparisienne.com',        sucursal:'Mercado Andares',     rol:'gerente',  region:'GDL', password:'grupomyt2025'},
-  {id:6,  nombre:'Gerente La Perla',         correo:'laperla@lacrepeparisienne.com',               sucursal:'La Perla',            rol:'gerente',  region:'GDL', password:'grupomyt2025'},
-  {id:7,  nombre:'Gerente Forum',            correo:'forumtlaquepaque@lacrepeparisienne.com',      sucursal:'Forum Tlaquepaque',   rol:'gerente',  region:'GDL', password:'grupomyt2025'},
-  {id:8,  nombre:'Gerente Patria',           correo:'plazapatria@lacrepeparisienne.com',           sucursal:'Plaza Patria',        rol:'gerente',  region:'GDL', password:'grupomyt2025'},
-  {id:9,  nombre:'Gerente Galerías',         correo:'galeriasguadalajara@lacrepeparisienne.com',   sucursal:'Galerías Guadalajara',rol:'gerente',  region:'GDL', password:'grupomyt2025'},
-  {id:10, nombre:'Gerente Midtown',          correo:'midtown@lacrepeparisienne.com',               sucursal:'Midtown',             rol:'gerente',  region:'GDL', password:'grupomyt2025'},
-  {id:11, nombre:'Gerente Via Viva',         correo:'viaviva@lacrepeparisienne.com',               sucursal:'Via Viva',            rol:'gerente',  region:'GDL', password:'grupomyt2025'},
-  {id:12, nombre:'Ibrahim Garcia',           correo:'ultima.ibrahim@proton.me',                   sucursal:null,                  rol:'admin',    region:'GDL', password:'grupomyt2025'},
-  {id:13, nombre:'Oliver Gonzalez',          correo:'oliver.gonzalez@lacrepeparisienne.com',       sucursal:null,                  rol:'regional', region:'GDL', password:'grupomyt2025'}
-];
+const USUARIOS_LOCALES = [];
 
-// Alias para compatibilidad (app.js antiguo lo llamaba DEMO_USERS)
+// Alias para compatibilidad — vacío por seguridad
 const DEMO_USERS = USUARIOS_LOCALES;

@@ -1,10 +1,26 @@
 // Portal GDL — Service Worker v2.0
 // Estrategia: Network-First para HTML/JS (siempre frescos), Cache-First para fonts/CDN
 
-const CACHE_NAME = 'portal-gdl-v3';
+const CACHE_NAME = 'portal-gdl-v4';
 const STATIC_ASSETS = [
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
-  'https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap'
+  'https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap',
+  './',
+  './index.html',
+  './css/style.css',
+  './js/config.js',
+  './js/api.js',
+  './js/auth.js',
+  './js/ui.js',
+  './js/app.js',
+  './pages/inicio.html',
+  './pages/dashboard.html',
+  './pages/sucursales.html',
+  './pages/regional.html',
+  './pages/juntas.html',
+  './pages/formatos.html',
+  './pages/admin-section.html',
+  './pages/about.html'
 ];
 
 // Instalar: solo cachear CDN/fonts estáticos que no cambian

@@ -9,6 +9,20 @@
 let chartVentas = null, chartEntregas = null, chartTendencia = null;
 let lecturasGlobal = [];
 
+/* ── Helpers de sanitización ──────────────────────────────── */
+function sanitizeHtml(html) {
+  if (!html) return '';
+  const allowed = new Set(['STRONG', 'EM', 'B', 'I', 'BR', 'P', 'SPAN', 'UL', 'OL', 'LI']);
+  return String(html).replace(/<(\/?)(\w+)([^>]*)>/g, (match, slash, tag, attrs) => {
+    if (allowed.has(tag.toUpperCase())) {
+      const safeAttrs = attrs.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+                             .replace(/javascript:/gi, '');
+      return `<${slash}${tag}${safeAttrs}>`;
+    }
+    return '';
+  });
+}
+
 /* ─────────────────────────────────────────────────────────────
    ONBOARDING, AUTH, ROLES, USER MENU, NOTIFICACIONES,
    ROUTING, DARK MODE, TOAST, INSTRUCCIONES y FECHA
@@ -292,7 +306,7 @@ function renderAvisos(){
         <span class="aviso-fecha-txt">${escapeHtml(av.fecha||'')}</span>
         ${criticoMarker}${nuevoBadge(av)}${venceBadge(av)}
       </div>
-      <div class="aviso-texto">${av.texto||''}</div>${leidoBlock}`;
+      <div class="aviso-texto">${sanitizeHtml(av.texto||'')}</div>${leidoBlock}`;
     track.appendChild(slide);
     const dot=document.createElement('div');
     dot.className='avisos-dot-item'+(i===0?' active':'');
@@ -802,7 +816,6 @@ $('footer-ver').textContent   = VERSION + '-beta · Portal LCP · 2026';
 ocultarPortal();
 cargarAvisos();
 cargarConsolidadoLocal();
-initOnboarding();
 
 /* ══ JUNTAS Y ACUERDOS — lógica ════════════════════════════════ */
 let juntasData = [];
@@ -872,8 +885,8 @@ function renderJuntas(){
         </div>
         ${esLider?`<div class="junta-acciones"><button class="junta-edit-btn" onclick="abrirModalJunta('${j.id}')">Editar</button></div>`:''}
       </div>
-      <div class="junta-card-tema">${j.tema||'Sin tema'}</div>
-      <div class="junta-card-acuerdos">${(j.acuerdos||'Sin acuerdos registrados.')}</div>
+      <div class="junta-card-tema">${escapeHtml(j.tema||'Sin tema')}</div>
+      <div class="junta-card-acuerdos">${escapeHtml(j.acuerdos||'Sin acuerdos registrados.')}</div>
       <div class="junta-card-footer">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         Publicado por ${j.autor||j.responsable||'—'}

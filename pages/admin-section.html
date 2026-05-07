@@ -37,8 +37,18 @@
     <div class="anim anim-4" style="margin-top:24px;">
       <button class="changelog-toggle" onclick="toggleChangelog()" data-testid="changelog-toggle">⚙ DEBUG · Changelog — Portal GDL</button>
       <div class="changelog-panel" id="changelog-panel">
-        <div class="changelog-title">// historial de versiones — modo debug · Portal GDL · Beta</div>
-        <div class="changelog-version">
+      <div class="changelog-title">// historial de versiones — modo debug · Portal GDL · Beta</div>
+      <div class="changelog-version">
+        <div class="changelog-ver-num">v0.8.2</div>
+        <div class="changelog-ver-date">07 may 2026 — Fixes Críticos de Seguridad (QA)</div>
+        <div class="changelog-item fix">Sanitización XSS en avisos (sanitizeHtml) y juntas (escapeHtml)</div>
+        <div class="changelog-item fix">Eliminado bypass de token en markLeido (token.includes('@'))</div>
+        <div class="changelog-item fix">Sanitizado fileName en uploadFile (path traversal)</div>
+        <div class="changelog-item fix">Eliminadas contraseñas en texto plano del frontend (USUARIOS_LOCALES)</div>
+        <div class="changelog-item fix">Login offline inseguro deshabilitado — requiere servidor</div>
+        <div class="changelog-item new">Precache completo en Service Worker para funcionamiento offline</div>
+      </div>
+      <div class="changelog-version">
           <div class="changelog-ver-num">v0.8.0</div>
           <div class="changelog-ver-date">05 may 2026 — Fase 3: Seguridad y Automatización</div>
           <div class="changelog-item new">Dashboard filtrado por sucursal para gerentes</div>

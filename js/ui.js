@@ -15,18 +15,6 @@ function applyDark(on, save) {
 }
 initDark();
 
-/* ── Onboarding ───────────────────────────────────────────── */
-let obActual = 0;
-function initOnboarding() {
-  if (localStorage.getItem(OB_KEY)) { $('onboarding').style.display = 'none'; iniciarFlujoAuth(); }
-}
-function nextOb(n) { $('ob-'+obActual).classList.remove('active'); obActual = n; $('ob-'+obActual).classList.add('active'); }
-function cerrarOnboarding() {
-  const ob = $('onboarding');
-  ob.classList.add('fade-out');
-  localStorage.setItem(OB_KEY, '1');
-  setTimeout(() => { ob.style.display = 'none'; iniciarFlujoAuth(); }, 650);
-}
 
 /* ── Routing / Secciones ──────────────────────────────────── */
 function showSection(id, btn) {
@@ -165,3 +153,6 @@ function initFechaHoy() {
   const semanaEl = $('semana-label');
   if (semanaEl) semanaEl.textContent = `Sem. ${lunes.toLocaleDateString('es-MX',fc)} – ${domingo.toLocaleDateString('es-MX',fc)} · ${hoy.getFullYear()}`;
 }
+
+/* ── Kickoff de UI ── */
+iniciarFlujoAuth();
