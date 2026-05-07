@@ -128,20 +128,12 @@ function doLogout() {
   if ($('login-correo')) $('login-correo').value = '';
   if ($('login-pass'))   $('login-pass').value   = '';
   $('login-screen').classList.remove('hidden');
-  ocultarPortal();
-}
-
+/* ── Ocultar/Mostrar el Portal ────────────────────────────── */
 function ocultarPortal() {
-  ['header','nav','#main-content','footer'].forEach(s => {
-    const el = document.querySelector(s) || $(s.replace('#',''));
-    if (el) el.style.display = 'none';
-  });
+  document.body.classList.add('portal-hidden');
 }
 function mostrarPortal() {
-  ['header','nav','#main-content','footer'].forEach(s => {
-    const el = document.querySelector(s) || $(s.replace('#',''));
-    if (el) el.style.display = '';
-  });
+  document.body.classList.remove('portal-hidden');
 }
 
 /* ── Aplicar roles ────────────────────────────────────────── */
