@@ -116,7 +116,8 @@ function getSessionUser(token) {
 /** Requiere que el token de sesión sea válido (para acciones de escritura) */
 function requireRole(token, allowedRoles) {
   if (!token) throw new Error('No autorizado');
-  getSessionUser(token); // Valida contra PropertiesService
+  const sess = getSessionUser(token);
+  if (allowedRoles && !allowedRoles.includes(sess.rol)) throw new Error('Permiso denegado');
 }
 
 function requireLeadership(token) { requireRole(token, LEADERSHIP_ROLES); }
@@ -280,8 +281,6 @@ function saveJunta({ id, fecha, tipo, tema, acuerdos, responsable, estado, autor
   }
   ss.appendRow(row);
   
-  try { sendNewsletterNow({ token }); } catch (e) { Logger.log(e); }
-  
   return { ok: true, id: newId };
 }
 
@@ -329,6 +328,8 @@ function saveConsolidado({ semana, data, token }) {
 // ════════════════════════════════════════════════════════════════
 
 function setEntrega({ sucursal, entrego, semana, token }) {
+  if (!token) throw new Error("No autorizado");
+  requireGerente(token);
   if (!sucursal) throw new Error("Falta sucursal");
   const sem = semana || getSemanaActual();
   const ss = getSheet(TAB.CONSOLIDADO);
@@ -358,6 +359,8 @@ function getSemanaActual() {
 // ════════════════════════════════════════════════════════════════
 
 function uploadFile(payload) {
+  if (!payload.token) throw new Error("No autorizado");
+  requireGerente(payload.token);
   if (!DRIVE_FOLDER_ID) throw new Error("DRIVE_FOLDER_ID no configurado en Code.gs");
 
   const base64Data = payload.fileData.split(',')[1];
