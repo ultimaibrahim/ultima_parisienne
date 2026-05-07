@@ -15,7 +15,43 @@
 </head>
 <body>
 
-<!-- ══ ONBOARDING ══════════════════════════════════════════════ -->
+<!-- ══ LOGIN ══════════════════════════════════════════════════ -->
+<div id="login-screen" role="dialog" aria-label="Inicio de sesión">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg viewBox="0 0 32 32" width="40" height="40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="32" height="32" rx="7" fill="#F5EFE6"/>
+        <line x1="23" y1="7" x2="10" y2="25" stroke="#3D5A47" stroke-width="2.8" stroke-linecap="round"/>
+        <rect x="4" y="9" width="15" height="5.5" rx="2" fill="#7A9E8A" transform="rotate(-37 11.5 11.5)"/>
+        <rect x="4.5" y="9.5" width="14" height="1.8" rx="0.9" fill="#a8c4b4" opacity="0.4" transform="rotate(-37 11.5 11.5)"/>
+      </svg>
+      <div>
+        <div class="login-logo-text">La Crêpe Parisienne</div>
+        <div class="login-logo-sub">Portal Operativo · GDL</div>
+      </div>
+    </div>
+    <div class="login-card">
+      <div class="login-title">Inicia sesión</div>
+      <div class="login-sub">Accede con tu correo y contraseña corporativos.</div>
+      <div class="login-field">
+        <label class="login-label" for="login-correo">Correo</label>
+        <input class="login-input" id="login-correo" type="email" placeholder="nombre@lcp.mx" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()" data-testid="login-email-input">
+      </div>
+      <div class="login-field">
+        <label class="login-label" for="login-pass">Contraseña</label>
+        <input class="login-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" data-testid="login-pass-input">
+      </div>
+      <button class="login-btn" id="login-btn-el" onclick="doLogin()" data-testid="login-submit-btn">Entrar al portal →</button>
+      <div class="login-err" id="login-err" role="alert">Correo o contraseña incorrectos.</div>
+    </div>
+    <div class="login-footer">
+      ¿Problemas? Escríbele a Saúl Ibrahim.<br>
+      <span id="login-server-badge" style="display:none;font-size:11px;opacity:0.7;"></span>
+      <span id="login-demo-hint" style="display:none;font-size:11px;opacity:0.7;"><br>Modo local activado</span>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL EDITOR DE AVISOS ══════════════════════════════════ -->
 <div class="admin-overlay" id="admin-overlay" onclick="cerrarAdmin(event)" role="dialog" aria-label="Editor de avisos">
   <div class="admin-panel" onclick="event.stopPropagation()">
