@@ -3,7 +3,7 @@
 //  Despliega como Web App: Ejecutar como "Yo", Acceso "Cualquiera"
 //  SHEET MÍNIMO: solo persiste lo que el frontend no puede guardar.
 //    Pestañas: Avisos | Juntas | Consolidado | Lecturas
-//    Usuarios y Sucursales viven en app.js (DEMO_USERS / SUCURSALES).
+//    Usuarios viven en USERS_DB (Code.gs). Sucursales en config.js.
 // ════════════════════════════════════════════════════════════════
 
 const SHEET_ID        = "1tje-3xwR_MtCnoeAcTxV8_LbHjyM03NsH8tRlwdPySA"; // PortalGDL_db
@@ -115,11 +115,7 @@ function getSessionUser(token) {
 
 /** Requiere que el token de sesión sea válido (para acciones de escritura) */
 function requireRole(token, allowedRoles) {
-  // Si no hay token o el token parece ser un correo (modo desarrollo / fallback frontend)
-  // simplemente lo dejamos pasar para no romper la app durante la transicion
   if (!token) throw new Error('No autorizado');
-  // Token largo = UUID de sesión real. Token corto = correo (modo dev, aceptar)
-  if (token === 'offline_demo') return; // Modo dev offline fallback
   getSessionUser(token); // Valida contra PropertiesService
 }
 

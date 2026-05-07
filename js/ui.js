@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════════
    ui.js · Portal Operativo LCP
-   Dark mode, toast, notificaciones, routing, onboarding
+   Dark mode, toast, notificaciones, routing
    ══════════════════════════════════════════════════════════════ */
 
 /* ── Dark Mode ────────────────────────────────────────────── */
@@ -68,7 +68,7 @@ function cerrarUserMenu() {
   $('user-chip-btn').classList.remove('open');
   $('user-chip-btn').setAttribute('aria-expanded', 'false');
 }
-function irAMiSucursal() { cerrarUserMenu(); showSection('sucursales', null); }
+function irAMiSucursal() { cerrarUserMenu(); setMobileTab('mn-sucursales'); showSection('sucursales', null); }
 
 document.addEventListener('click', e => {
   const menu = $('user-menu'), chip = $('user-chip-btn');

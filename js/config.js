@@ -5,10 +5,9 @@
    ══════════════════════════════════════════════════════════════ */
 
 // ── Versión ─────────────────────────────────────────────────────
-const VERSION = 'v0.8.2';
+const VERSION = 'v0.8.5';
 
 // ── LocalStorage Keys ───────────────────────────────────────────
-const OB_KEY    = 'lcp_gdl_ob_v1';
 const DM_KEY    = 'lcp_gdl_dm';
 const AV_KEY    = 'lcp_gdl_avisos_v3';
 const HIST_KEY  = 'lcp_gdl_avisos_hist_v3';
@@ -165,6 +164,3 @@ function activarRegion(regionId) {
 //  Toda autenticación requiere conexión al backend de Apps Script.
 // ════════════════════════════════════════════════════════════════
 const USUARIOS_LOCALES = [];
-
-// Alias para compatibilidad — vacío por seguridad
-const DEMO_USERS = USUARIOS_LOCALES;

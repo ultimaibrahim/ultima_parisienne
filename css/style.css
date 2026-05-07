@@ -477,6 +477,10 @@ tbody td{padding:10px 14px;color:var(--text);}
 .td-edit:focus{background:var(--amber-pale);border-radius:4px;padding:1px 4px;}
 [data-theme="dark"] .td-edit:focus{background:#2a2500;}
 .td-edit.readonly{color:var(--text-muted);pointer-events:none;cursor:default;}
+/* Ocultar spinners en inputs numéricos de la tabla */
+.td-edit[type="number"]::-webkit-outer-spin-button,
+.td-edit[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.td-edit[type="number"]{appearance:textfield;-moz-appearance:textfield;}
 .badge{display:inline-block;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:.04em;white-space:nowrap;}
 .badge-verde{background:#e8f5e9;color:#2e7d32;}
 .badge-amber{background:var(--amber-pale);color:#b35a00;}

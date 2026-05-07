@@ -34,7 +34,7 @@ function getSession() {
 
 function saveSession(user) {
   localStorage.setItem(SESS_KEY, JSON.stringify({ user, expires: Date.now() + 86400000 * 7 }));
-  localStorage.setItem(TOKEN_KEY, user.token || 'offline_demo');
+  localStorage.setItem(TOKEN_KEY, user.token);
 }
 
 /* ── Flujo de autenticación ───────────────────────────────── */
@@ -200,6 +200,8 @@ function aplicarRoles() {
   }
   renderAvisos();
   initFechaHoy(); // Re-llamar aquí para asegurar que semana-label ya está en el DOM
+  if(typeof construirTablaConsolidado === 'function') construirTablaConsolidado();
+  if(typeof sincronizarChecklistBackend === 'function') sincronizarChecklistBackend();
   $('stat-version').textContent  = VERSION;
   $('footer-ver').textContent    = VERSION + '-beta · Portal LCP ' + (REGIONES[u.region]?.nombre || 'GDL') + ' · 2026';
 }

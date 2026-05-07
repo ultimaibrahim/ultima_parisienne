@@ -315,7 +315,7 @@
 <footer>
   <div class="footer-text">Portal Operativo GDL · <span>La Crêpe Parisienne</span> · Grupo MYT / Corporativo Alancar</div>
   <div class="footer-contact">Desarrollado por <span>Ibrahim Garcia</span> · <a href="https://wa.me/5213333223998" target="_blank" rel="noopener">WhatsApp →</a></div>
-  <div class="footer-ver" id="footer-ver">v0.8.2 · Portal GDL · 2026</div>
+  <div class="footer-ver" id="footer-ver">v0.8.5 · Portal GDL · 2026</div>
 </footer>
 
   <script>
@@ -349,7 +349,8 @@
           try {
             const res = await fetch(s.getAttribute('data-page') + '?v=' + v);
             if (res.ok) { s.innerHTML = await res.text(); s.setAttribute('data-loaded', 'true'); }
-          } catch(e) { console.error('Error loading component', e); }
+            else { s.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);"><div style="font-size:28px;margin-bottom:12px;">⚠️</div><div style="font-weight:600;margin-bottom:8px;">Error cargando sección</div><button onclick="location.reload()" style="background:var(--verde);color:var(--crema);border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-weight:600;">Recargar página</button></div>'; }
+          } catch(e) { console.error('Error loading component', e); s.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);"><div style="font-size:28px;margin-bottom:12px;">📡</div><div style="font-weight:600;margin-bottom:8px;">Sin conexión</div><div style="font-size:12px;">Conecta a internet y recarga.</div></div>'; }
         }));
       }
 

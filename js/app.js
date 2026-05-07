@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════
-   app.js · Portal Operativo LCP · v0.7.0
+   app.js · Portal Operativo LCP · v0.8.5
    Lógica de negocio: avisos, dashboard, sucursales, juntas.
    Config  → js/config.js  |  API  → js/api.js
    Auth    → js/auth.js    |  UI   → js/ui.js
@@ -24,9 +24,9 @@ function sanitizeHtml(html) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   ONBOARDING, AUTH, ROLES, USER MENU, NOTIFICACIONES,
-   ROUTING, DARK MODE, TOAST, INSTRUCCIONES y FECHA
-   → Migradas a: auth.js / ui.js
+   AUTH, ROLES, USER MENU, NOTIFICACIONES, ROUTING,
+   DARK MODE, TOAST, INSTRUCCIONES y FECHA
+   → Viven en: auth.js / ui.js
    ───────────────────────────────────────────────────────────── */
 
 async function refrescarDatosBackend(){
@@ -45,6 +45,32 @@ async function refrescarDatosBackend(){
     }
   }
   cargarJuntas();
+  sincronizarChecklistBackend();
+}
+
+async function sincronizarChecklistBackend(){
+  if(!getActiveApiUrl() || !currentUser) return;
+  const semEl = document.getElementById('semana-label');
+  const sem = semEl ? semEl.textContent.trim() : '';
+  if(!sem) return;
+  try {
+    const res = await apiGet('getConsolidado', { semana: sem });
+    if(res.ok && Array.isArray(res.data)){
+      const d = getChecklistData();
+      let cambio = false;
+      res.data.forEach(row => {
+        if(row.nombre && SUCURSALES.includes(row.nombre)){
+          const entrego = String(row.entrego).toLowerCase()==='true' || row.entrego===true;
+          if(d[row.nombre] !== entrego){ d[row.nombre]=entrego; cambio=true; }
+        }
+      });
+      if(cambio){
+        setChecklistData(d);
+        renderChecklist();
+        actualizarMiSucursalStatus();
+      }
+    }
+  } catch(e){ console.warn('[sincronizarChecklistBackend]', e); }
 }
 
 function resaltarMiSucursal(nombre){
@@ -325,7 +351,7 @@ function irAviso(n){
   $('av-counter').textContent=(avActual+1)+' / '+avisos.length;
   $('av-prev').disabled=avActual===0;$('av-next').disabled=avActual===avisos.length-1;
 }
-function moverAviso(dir){const n=avActual+dir;if(n<0||n>=avisos.length)return;pausarAutoplay();irAviso(n);programarReanudar();}
+function moverAviso(dir){const n=avActual+dir;if(n<0||n>=avisos.length)return;pausarAutoplay();irAviso(n);clearTimeout(avResumeTimeout);avResumeTimeout=setTimeout(()=>{iniciarAutoplay();},AV_RESUME_DELAY);}
 function pausarAutoplay(){clearInterval(avTimer);clearInterval(avProgressTimer);clearTimeout(avResumeTimeout);avTimer=null;avProgressTimer=null;avResumeTimeout=null;avProgress=0;$('aviso-fill').style.width='0%';}
 function programarReanudar(){clearTimeout(avResumeTimeout);if(avHovered)return;avResumeTimeout=setTimeout(()=>{if(!avHovered)iniciarAutoplay();},AV_RESUME_DELAY);}
 function iniciarAutoplay(){
@@ -501,22 +527,26 @@ async function enviarNewsletterAhora(){
 }
 
 /* ── TABLA CONSOLIDADO ────────────────────────────────────── */
-const tbody=$('tabla-body');
-SUCURSALES.forEach(nombre=>{
-  const tr=document.createElement('tr');
-  tr.innerHTML=`
-    <td class="td-suc">${nombre}</td>
-    <td><input class="td-edit" type="text" placeholder="—" oninput="rc(this)" onblur="rc(this)" data-col="meta" aria-label="Meta ${nombre}"></td>
-    <td><input class="td-edit" type="text" placeholder="—" oninput="rc(this)" onblur="rc(this)" data-col="venta" aria-label="Venta ${nombre}"></td>
-    <td class="td-avance" style="font-variant-numeric:tabular-nums">—</td>
-    <td><input class="td-edit" type="text" placeholder="—" oninput="rc(this)" onblur="rc(this)" data-col="acumulado" aria-label="Acum. Mes ${nombre}"></td>
-    <td><input class="td-edit" type="text" placeholder="—" oninput="rc(this)" onblur="rc(this)" data-col="trx" aria-label="TRX ${nombre}"></td>
-    <td class="td-ticket" style="font-variant-numeric:tabular-nums">—</td>
-    <td class="td-tendencia" style="font-variant-numeric:tabular-nums">—</td>
-    <td><input class="td-edit" type="text" placeholder="Pendiente" oninput="rc(this)" onblur="rc(this)" data-col="entrego" aria-label="Entregó ${nombre}"></td>
-    <td class="td-badge"><span class="badge badge-gray">Sin dato</span></td>`;
-  tbody.appendChild(tr);
-});
+function construirTablaConsolidado(){
+  const tbody=$('tabla-body');
+  if(!tbody)return;
+  tbody.innerHTML='';
+  SUCURSALES.forEach(nombre=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="td-suc">${nombre}</td>
+      <td><input class="td-edit" type="number" placeholder="—" oninput="rc(this)" onblur="rc(this)" data-col="meta" aria-label="Meta ${nombre}"></td>
+      <td><input class="td-edit" type="number" placeholder="—" oninput="rc(this)" onblur="rc(this)" data-col="venta" aria-label="Venta ${nombre}"></td>
+      <td class="td-avance" style="font-variant-numeric:tabular-nums">—</td>
+      <td><input class="td-edit" type="number" placeholder="—" oninput="rc(this)" onblur="rc(this)" data-col="acumulado" aria-label="Acum. Mes ${nombre}"></td>
+      <td><input class="td-edit" type="number" placeholder="—" oninput="rc(this)" onblur="rc(this)" data-col="trx" aria-label="TRX ${nombre}"></td>
+      <td class="td-ticket" style="font-variant-numeric:tabular-nums">—</td>
+      <td class="td-tendencia" style="font-variant-numeric:tabular-nums">—</td>
+      <td><input class="td-edit" type="text" placeholder="Pendiente" oninput="rc(this)" onblur="rc(this)" data-col="entrego" aria-label="Entregó ${nombre}"></td>
+      <td class="td-badge"><span class="badge badge-gray">Sin dato</span></td>`;
+    tbody.appendChild(tr);
+  });
+}
 async function guardarConsolidadoLocal(){
   const data = getTablaData();
   const sem = document.getElementById('semana-label').textContent.trim();
@@ -565,6 +595,7 @@ async function cargarConsolidadoLocal(){
 }
 let debounceTimer = null;
 function actualizarFechaConsolidado() {
+  initFechaHoy(); // Reutiliza helper centralizado para consistencia
   const ts = 'Actualizado: ' + new Date().toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'});
   if(document.getElementById('tabla-update-meta')) document.getElementById('tabla-update-meta').textContent = ts;
   if(document.getElementById('dash-update-meta')) document.getElementById('dash-update-meta').textContent = ts;
@@ -671,8 +702,13 @@ function initDashboard(){
   $('kpi-bar-trx').style.width=totalTrx?Math.min(totalTrx/5000*100,100)+'%':'0%';
 
   const criticos=avisos.filter(a=>a.critico);
-  const leidos=getLeidosLocales();
-  const lCount=criticos.filter(a=>leidos[a.id]).length;
+  // Priorizar lecturas del backend; fallback a locales solo si no hay datos de servidor
+  const leidosBackend = lecturasGlobal && lecturasGlobal.length ? new Set(lecturasGlobal.map(l=>l.avisoId)) : null;
+  const leidosLocales = getLeidosLocales();
+  const lCount = criticos.filter(a => {
+    if (leidosBackend) return leidosBackend.has(a.id);
+    return !!leidosLocales[a.id];
+  }).length;
   const cobertura=criticos.length?Math.round(lCount/criticos.length*100):100;
   $('kpi-criticos').textContent=cobertura+'%';
   $('kpi-criticos-sub').textContent=criticos.length?lCount+'/'+criticos.length+' avisos leídos':'Sin críticos activos';
@@ -820,6 +856,7 @@ cargarConsolidadoLocal();
 /* ══ JUNTAS Y ACUERDOS — lógica ════════════════════════════════ */
 let juntasData = [];
 let juntaFiltroActivo = 'todos';
+let juntasCargando = false;
 
 const JUNTAS_DEMO = [
   {id:'jt_001', fecha:'2026-04-22', tipo:'regional', tema:'Revisión de metas Q2 y ajuste de operación verano', acuerdos:'• Se ajustan metas de venta un 8% al alza para junio.\n• Todas las sucursales deben enviar su formato de inventario antes del viernes.\n• Se implementará nuevo checklist de apertura a partir del 1 de mayo.\n• Próxima junta regional: 20 de mayo.', responsable:'Oliver González', estado:'en-proceso', autor:'Oliver González'},
@@ -828,11 +865,13 @@ const JUNTAS_DEMO = [
 ];
 
 async function cargarJuntas(){
+  if(juntasCargando) return;
   const listEl=$('juntas-list');
   const emptyEl=$('juntas-empty');
   const loadEl=$('juntas-loading');
   if(!listEl)return;
 
+  juntasCargando = true;
   if(loadEl)loadEl.style.display='flex';
   if(listEl)listEl.style.display='none';
   if(emptyEl)emptyEl.style.display='none';
@@ -851,6 +890,7 @@ async function cargarJuntas(){
   }
 
   if(loadEl)loadEl.style.display='none';
+  juntasCargando = false;
   renderJuntas();
 }
 
@@ -858,6 +898,8 @@ function renderJuntas(){
   const listEl=$('juntas-list');
   const emptyEl=$('juntas-empty');
   if(!listEl)return;
+  // Sincronizar estado visual de filtros con el filtro activo lógico
+  document.querySelectorAll('.jfiltro').forEach(b=>b.classList.toggle('active', b.dataset.tipo===juntaFiltroActivo));
 
   const filtered = juntaFiltroActivo==='todos'
     ? juntasData

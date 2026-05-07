@@ -1,4 +1,4 @@
-# Portal Operativo LCP — Documento de Handoff v2.0
+# Portal Operativo LCP — Documento de Handoff v3.0
 
 **La Crêpe Parisienne · Grupo MYT / Corporativo Alancar**  
 Última actualización: Mayo 2026 · Saúl Ibrahim García
@@ -15,16 +15,19 @@
 - **Proponer antes de tareas grandes:** Para refactorizaciones o cambios de arquitectura, presentar un plan primero y esperar aprobación explícita. Para bugs y fixes directos, corregir sin preguntar.
 - **Ser directo y técnico:** No rodear las respuestas. Si algo está mal, decirlo. Si algo es un riesgo, nombrarlo sin suavizarlo.
 - **No inventar datos:** Nunca hardcodear nombres, sucursales, correos o IDs que no estén ya en el código. Verificar contra el source antes de modificar.
-- **Rol de QA proactivo:** Ibrahim espera que el asistente detecte bugs que él no vio. Se le llama "programador experto" en el prompt. Actuar como tal.
+- **Rol de QA proactivo:** Ibrahim espera que el asistente detecte bugs que él no vio. Actuar como programador experto senior.
 - **Tono:** Técnico, concreto, sin relleno. Las respuestas largas van en documentos/artefactos, no en el chat.
-- **Changelog obligatorio:** Con cada entrega actualizar `const VERSION` en `js/config.js` y agregar entrada al changelog (sección 9 de este documento).
+- **Changelog obligatorio:** Con cada entrega actualizar `const VERSION` en `js/config.js` y agregar entrada al changelog (sección 11 de este documento).
+- **Siempre pedir los archivos actuales antes de modificar.** Ibrahim trabaja con múltiples agentes (Claude, Kimi, OpenCode). El repo puede tener cambios que este agente no conoce. Nunca asumir que el código local es el más reciente.
 
-### Reglas de código
+### Reglas de código — LEER CON ATENCIÓN
 
 - No modificar paleta ni tipografía salvo petición explícita.
-- El modo demo (fallback a `USUARIOS_LOCALES` y `AVISOS_DEFAULT`) **siempre debe conservarse.**
+- **El onboarding fue eliminado permanentemente en v0.8.2. No reintroducirlo bajo ninguna circunstancia.** No existe `initOnboarding()`, `cerrarOnboarding()` ni `nextOb()` en ningún archivo.
+- **El modo demo/fallback offline (`USUARIOS_LOCALES`) fue eliminado en v0.8.2. No reintroducirlo.** Toda autenticación requiere conexión al backend de Apps Script.
 - No agregar dependencias nuevas sin preguntar.
-- Antes de cada cambio importante verificar que el archivo tiene el contenido esperado (puede haber cambiado desde la última sesión).
+- Antes de cada cambio importante verificar que el archivo tiene el contenido esperado — puede haber cambiado por otro agente.
+- Las `pages/` se cargan dinámicamente. Cambios de HTML en secciones van en `pages/nombre.html`, NO en `index.html`. La excepción es el login, que vive en `index.html`.
 
 ---
 
@@ -32,7 +35,7 @@
 
 El Portal Operativo es una **herramienta interna de inteligencia operativa** para centralizar la operación de las sucursales de La Crêpe Parisienne. Reemplaza la comunicación dispersa en WhatsApp y consolida reportes, avisos, minutas y métricas en un solo lugar.
 
-**No es un ERP.** Es una "Custom Business App" / Intranet ligera. El punto de comparación correcto es una intranet corporativa sencilla, no SAP.
+**No es un ERP.** Es una "Custom Business App" / Intranet ligera.
 
 ### Personas clave
 
@@ -47,45 +50,43 @@ Ibrahim trabaja como barista en Andares (fusionada con Mercado Andares operativa
 
 ---
 
-## 2. Stack Técnico actual — v0.7.0
+## 2. Stack Técnico — v0.8.2
 
 ### Arquitectura
 
 SPA (Single Page Application) sin framework. HTML/CSS/JS puro hosteado en **GitHub Pages**. Backend exclusivamente en **Google Apps Script**. Sin Node.js, Firebase, Vercel ni nada externo.
 
-> Esta arquitectura fue una decisión deliberada: arrancar gratis, sin servidores, sin deploys complicados. Escala bien hasta ~50-100 usuarios concurrentes antes de necesitar migración.
-
 | Capa | Tecnología |
 |---|---|
-| Frontend | HTML/CSS/JS modular (4 módulos + app.js) |
+| Frontend | HTML/CSS/JS modular (5 módulos) |
 | Hosting | GitHub Pages — repo: `ultimaibrahim/ultima_parisienne` |
 | Backend | Google Apps Script como Web App pública |
 | Base de datos | Google Sheets (PortalGDL_db) |
 | Storage | Google Drive — carpetas por sucursal |
 | Charts | Chart.js 4.4.0 via CDN (jsdelivr) |
 | Fonts | DM Serif Display + DM Sans (Google Fonts) |
-| PWA | Service Worker (`sw.js`) + `manifest.json` — funciona offline |
-| Versión actual | `v0.7.0` |
+| PWA | Service Worker (`sw.js`) v4 + `manifest.json` |
+| Versión actual | `v0.8.2` |
 
-### Estructura de archivos (post-refactor Fase 1)
+### Estructura de archivos
 
 ```
 ultima_parisienne/
-├── index.html          ← Punto de entrada. Carga pages/ y luego los módulos JS en orden.
+├── index.html          ← Punto de entrada. Contiene login, modales y loader seguro.
 ├── manifest.json       ← PWA config
-├── sw.js               ← Service Worker (cache-first para assets)
+├── sw.js               ← Service Worker v4 — network-first + precache completo
 ├── Code.gs             ← Backend completo (Google Apps Script)
 ├── PORTAL_GDL_HANDOFF.md
 │
 ├── js/
-│   ├── config.js       ← FUENTE DE VERDAD ÚNICA: regiones, sucursales, Drive IDs, usuarios, keys LS
+│   ├── config.js       ← FUENTE DE VERDAD ÚNICA: regiones, sucursales, Drive IDs, keys LS
 │   ├── api.js          ← apiCall() y apiGet() — lee URL del backend de la región activa
 │   ├── auth.js         ← Login, sesión, roles, aplicarRoles(), helpers (escapeHtml, etc.)
-│   ├── ui.js           ← Dark mode, toast, notifs, routing (showSection), onboarding, fecha
+│   ├── ui.js           ← Dark mode, toast, notifs, routing (showSection), fecha. Kickoff: iniciarFlujoAuth()
 │   └── app.js          ← Lógica de negocio: avisos, dashboard, sucursales, juntas, tabla
 │
 ├── css/
-│   └── style.css       ← ~58KB. Paleta de marca, glassmorphism, dark mode, responsive.
+│   └── style.css       ← Paleta de marca, glassmorphism, dark mode, responsive.
 │
 └── pages/              ← HTML de cada sección (se cargan dinámicamente en index.html)
     ├── inicio.html
@@ -98,14 +99,40 @@ ultima_parisienne/
     └── about.html
 ```
 
-**El orden de carga de módulos en `index.html` es crítico:**  
-`config.js` → `api.js` → `auth.js` → `ui.js` → `app.js`
-
-Cada módulo depende del anterior. Si se cambia el orden, el portal se rompe.
+**Orden de carga crítico:** `config.js` → `api.js` → `auth.js` → `ui.js` → `app.js`
 
 ---
 
-## 3. Google Infrastructure
+## 3. Loader seguro y flujo de autenticación (v0.8.2)
+
+Este es el cambio arquitectural más importante. Leerlo antes de tocar `index.html` o `ui.js`.
+
+### Flujo sin sesión (usuario nuevo o sesión expirada)
+
+1. `index.html` carga → el loader verifica `localStorage` → no hay sesión válida
+2. Carga solo `config.js → api.js → auth.js → ui.js`
+3. **Las `pages/` y `app.js` NO se cargan** — el contenido del portal no existe en el DOM
+4. `ui.js` llama `iniciarFlujoAuth()` al final — no hay sesión — el login ya está visible en el HTML
+5. Usuario entra credenciales → `doLogin()` exitoso → llama `window._cargarPortalCompleto()`
+6. `_cargarPortalCompleto()` hace fetch de las `pages/` y carga `app.js`
+7. `aplicarRoles()` corre → portal visible y funcional
+
+### Flujo con sesión activa
+
+1. `index.html` carga → loader verifica `localStorage` → sesión válida
+2. Carga `pages/` + todos los módulos en orden
+3. `ui.js` llama `iniciarFlujoAuth()` → hay sesión → `aplicarRoles()` → portal directo
+
+### Reglas críticas derivadas de esta arquitectura
+
+- El login **no tiene `class="hidden"`** en el HTML. Arranca visible. `auth.js` lo oculta tras login exitoso.
+- `iniciarFlujoAuth()` vive en `ui.js` y se llama al final de ese módulo. No moverlo a `app.js`.
+- `app.js` no se carga hasta después del login cuando no hay sesión. Funciones como `aplicarJuntasRol`, `renderAvisos`, etc. no existen en runtime antes de eso.
+- No existe onboarding. No hay `initOnboarding()` en ningún archivo.
+
+---
+
+## 4. Google Infrastructure
 
 ### Apps Script (Backend)
 
@@ -115,13 +142,13 @@ Cada módulo depende del anterior. Si se cambia el orden, el portal se rompe.
 | Ejecutar como | Cuenta propietaria del Sheet |
 | Acceso | Cualquier persona |
 
-> **Regla de oro de Apps Script:** Las funciones `doPost`, `uploadFile`, `doLogin` etc. son **endpoints**. Solo se ejecutan desde la web app, nunca desde el botón "Ejecutar" del editor. Si se les da "Ejecutar" directamente, dan `TypeError: Cannot destructure property X of undefined` porque no reciben payload. Las únicas funciones que se pueden ejecutar desde el editor son las que no reciben parámetros: `setupHojaInicial`, `generateHashes`.
+> **Regla de oro:** Los endpoints solo funcionan desde la web app. Ejecutarlos desde el editor da `TypeError` porque no reciben payload. Solo son ejecutables desde el editor: `setupHojaInicial`, `generateHashes`.
 
 ### Endpoints GET
 
 | action | descripción |
 |---|---|
-| `ping` | Retorna `{ok:true}` para verificar conectividad |
+| `ping` | Retorna `{ok:true}` |
 | `avisos` | Devuelve avisos activos |
 | `getConsolidado` | Filtra por `&semana=XXXX` |
 | `getSemanas` | Lista semanas disponibles |
@@ -134,11 +161,11 @@ Cada módulo depende del anterior. Si se cambia el orden, el portal se rompe.
 | action | descripción |
 |---|---|
 | `login` | correo + password → `{ok, user, token}` |
-| `saveAviso` | Crea o actualiza aviso |
+| `saveAviso` | Crea o actualiza aviso — requiere `requireLeadership` |
 | `deleteAviso` | Soft delete |
 | `saveJunta` | Crea o actualiza minuta |
 | `setEntrega` | Marca entrega semanal |
-| `markLeido` | Registra lectura crítica |
+| `markLeido` | Registra lectura — guarda correo/nombre/sucursal real |
 | `uploadFile` | Sube archivo base64 a Drive |
 | `saveConsolidado` | Guarda datos de la tabla regional |
 | `sendNewsletterNow` | Dispara email a gerentes |
@@ -154,36 +181,26 @@ Cada módulo depende del anterior. Si se cambia el orden, el portal se rompe.
 | Juntas | id · fecha · tipo · tema · acuerdos · responsable · estado · autor |
 | Lecturas | avisoId · userCorreo · userNombre · userSucursal · timestamp |
 
-> La pestaña **Usuarios** fue eliminada del Sheet. Los usuarios ahora viven en `USERS_DB` dentro de `Code.gs` (con hashes SHA-256) y en `USUARIOS_LOCALES` en `config.js` (fallback offline con passwords en texto plano — **nunca subir a repo público**).
+> La pestaña **Usuarios** no existe en el Sheet. Los usuarios viven en `USERS_DB` dentro de `Code.gs` con hashes SHA-256.
 
 ---
 
-## 4. Arquitectura Multi-Región (Fase 2 — implementada)
+## 5. Arquitectura Multi-Región
 
-El portal está preparado para escalar a CDMX y MTY. **No hay que reescribir nada.** Solo activar en `config.js`:
+GDL es la única región activa. Para activar CDMX o MTY:
 
-```javascript
-// En js/config.js:
-REGIONES = {
-  GDL:  { status: 'activa',    apiUrl: '...', sheetId: '...' },  // ← ACTIVO
-  CDMX: { status: 'pendiente', apiUrl: null,  sheetId: null  },  // ← Solo rellenar y cambiar a 'activa'
-  MTY:  { status: 'pendiente', apiUrl: null,  sheetId: null  }   // ← Solo rellenar y cambiar a 'activa'
-}
-```
-
-Para activar una región nueva:
-1. Cambiar `status: 'pendiente'` → `'activa'`
-2. Pegar `apiUrl` (deploy del Apps Script de esa región)
+1. Cambiar `status: 'pendiente'` → `'activa'` en `config.js`
+2. Pegar `apiUrl` del deploy de Apps Script de esa región
 3. Pegar `sheetId` del Sheet de esa región
 4. Agregar sucursales en `SUCURSALES_POR_REGION.CDMX`
 5. Agregar Drive IDs en `SUCURSAL_DATA_POR_REGION.CDMX`
 6. Clonar `Code.gs` con los IDs correspondientes y hacer nuevo deploy
 
-El `api.js` lee el URL del backend de la región del usuario activo automáticamente.
+`api.js` lee el URL del backend de la región del usuario vía `getActiveApiUrl()`.
 
 ---
 
-## 5. Las 9 Sucursales GDL
+## 6. Las 9 Sucursales GDL
 
 | Sucursal | Código | Notas |
 |---|---|---|
@@ -197,17 +214,20 @@ El `api.js` lee el URL del backend de la región del usuario activo automáticam
 | Galerías Guadalajara | GAL | |
 | Forum Tlaquepaque | FOR | |
 
-Los Drive IDs completos (root, ventas, inv, inc, hor) están en `SUCURSAL_DATA_POR_REGION.GDL` en `config.js`. **No duplicarlos en otro lugar.**
+Los Drive IDs completos (root, ventas, inv, inc, hor) están en `SUCURSAL_DATA_POR_REGION.GDL` en `config.js`. No duplicarlos.
 
 ---
 
-## 6. Sistema de Auth
+## 7. Sistema de Auth
 
 ### Flujo de login
-1. `doLogin()` en `auth.js` intenta `apiCall('login', {correo, password})` contra Apps Script.
-2. Si falla o no hay conexión → fallback a `USUARIOS_LOCALES` en `config.js`.
-3. Se guarda en `localStorage` con clave `lcp_gdl_session_v1`, expira en 7 días.
-4. Al iniciar sesión, `activarRegion(user.region)` actualiza `SUCURSALES` y `SUCURSAL_DATA` globales.
+
+1. `doLogin()` llama `apiCall('login', {correo, password})` contra Apps Script.
+2. Si el servidor no responde → "Servidor no disponible. Intenta más tarde." Sin fallback.
+3. Login exitoso → sesión en `localStorage` (`lcp_gdl_session_v1`), expira en 7 días.
+4. Llama `window._cargarPortalCompleto()` si las páginas no estaban cargadas.
+5. `activarRegion(user.region)` actualiza `SUCURSALES` y `SUCURSAL_DATA`.
+6. `aplicarRoles()` renderiza el portal según el rol.
 
 ### Roles
 
@@ -215,22 +235,22 @@ Los Drive IDs completos (root, ventas, inv, inc, hor) están en `SUCURSAL_DATA_P
 |---|---|
 | `admin` | Todo. Ve todas las sucursales. |
 | `regional` | Tab admin, editar avisos, checklist, ve todas las sucursales. |
-| `analista` | Igual que regional. Sucursal propia destacada en el grid. |
-| `zonal` | Igual que regional. **Sin restricción de zona implementada aún.** |
-| `gerente` | Solo ve "Mi Sucursal". No puede editar avisos ni ver admin. Tabla consolidado en modo lectura. |
+| `analista` | Igual que regional. Sucursal propia destacada. |
+| `zonal` | Igual que regional. Sin restricción de zona implementada aún. |
+| `gerente` | Solo ve "Mi Sucursal". Sin edición de avisos ni acceso a admin. Consolidado en modo lectura. |
 
 `LEADERSHIP_ROLES = ['admin', 'analista', 'regional', 'zonal']`
 
-### Autenticación en Apps Script (Code.gs)
+### Autenticación en Apps Script
 
-- `USERS_DB` contiene hashes SHA-256 de contraseñas.
-- `generateHashes()` (ejecutar desde editor) genera los hashes para actualizar `USERS_DB`.
-- Sesiones: tokens UUID almacenados en `PropertiesService`, expiran en 7 días.
-- La contraseña genérica de todos los gerentes (`grupomyt2025`) es una decisión deliberada y aceptada. Si se despide a un gerente, se cambia la contraseña compartida.
+- `USERS_DB` contiene hashes SHA-256.
+- `generateHashes()` genera hashes para actualizar `USERS_DB` (ejecutar desde editor).
+- Sesiones: tokens UUID en `PropertiesService`, expiran en 7 días.
+- La contraseña genérica de gerentes (`grupomyt2025`) es decisión deliberada. Si se despide a un gerente, se cambia la contraseña.
 
 ---
 
-## 7. Paleta y Tipografía — NO MODIFICAR
+## 8. Paleta y Tipografía — NO MODIFICAR
 
 ```css
 --verde:       #3D5A47
@@ -248,19 +268,25 @@ Los Drive IDs completos (root, ventas, inv, inc, hor) están en `SUCURSAL_DATA_P
 
 ---
 
-## 8. Features implementados — v0.7.0
+## 9. Features implementados — v0.8.2
 
 | Feature | Estado |
 |---|---|
-| Onboarding 3 pasos | ✓ |
-| Login servidor + fallback offline | ✓ |
+| Login directo sin onboarding | ✓ v0.8.2 |
+| Auth exclusivamente en servidor | ✓ v0.8.2 |
+| Loader seguro — pages y app.js no cargan sin sesión | ✓ v0.8.2 |
+| XSS fixes — `sanitizeHtml()` en avisos y juntas | ✓ v0.8.2 |
+| SW v4 — precache completo de todos los assets | ✓ v0.8.2 |
+| `markLeido` guarda correo/nombre/sucursal real | ✓ v0.8.1 |
+| `saveAviso` restringido a leadership en backend | ✓ v0.7.1 |
+| `hashMatch` sin bypass — solo `===` | ✓ v0.7.1 |
 | Sesión 7 días con token UUID | ✓ |
 | Roles diferenciados en DOM | ✓ |
 | Dark mode persistente | ✓ |
 | Campana de notificaciones in-browser | ✓ |
 | Carrusel de avisos con autoplay + progress bar | ✓ |
 | Avisos críticos + confirmación de lectura | ✓ |
-| Editor CRUD de avisos (modal) | ✓ |
+| Editor CRUD de avisos (modal) — solo leadership | ✓ |
 | Histórico de avisos archivados | ✓ |
 | Checklist de entregas semanal | ✓ |
 | Mi Sucursal (vista gerente) | ✓ |
@@ -268,75 +294,36 @@ Los Drive IDs completos (root, ventas, inv, inc, hor) están en `SUCURSAL_DATA_P
 | Sucursales grid con búsqueda (vista leadership) | ✓ |
 | Consolidado regional editable inline | ✓ |
 | Dashboard: 5 KPIs, 3 gráficas, heatmap, ranking | ✓ |
-| Gráfica de tendencia con datos reales del consolidado | ✓ |
+| Gráfica de tendencia con datos reales | ✓ |
 | Juntas y Acuerdos con CRUD | ✓ |
 | Formatos descargables | ✓ |
-| Panel Admin (avisos, lecturas, newsletter, usuarios) | ✓ |
+| Panel Admin (avisos, lecturas, newsletter) | ✓ |
 | Newsletter manual por email | ✓ |
 | Deep linking por hash (`#dashboard`, etc.) | ✓ |
 | Mobile nav (bottom bar) | ✓ |
-| Badge de conectividad en login | ✓ |
-| Cache de avisos con TTL 5 minutos | ✓ |
-| PWA: Service Worker + manifest | ✓ |
-| **Modularización JS (config/api/auth/ui/app)** | ✓ v0.7.0 |
-| **Arquitectura multi-región preparada** | ✓ v0.7.0 |
-| `SUCURSALES.length` dinámico (no hardcoded `9`) | ✓ v0.7.0 |
+| Arquitectura multi-región preparada | ✓ |
 
 ---
 
-## 9. Bugs conocidos y deuda técnica
-
-### 🔴 Críticos
-
-| # | Bug | Fix |
-|---|---|---|
-| 1 | Passwords en `USUARIOS_LOCALES` (config.js) visibles en DevTools | Mover auth completamente al servidor. Mientras tanto: **hacer el repo privado en GitHub.** |
-| 2 | IDs de Drive expuestos en repo público | Mismo fix: repo privado. |
-| 3 | Token de sesión = correo del usuario (no firma real) | Fase 3: JWT. Por ahora el Apps Script valida tokens UUID via PropertiesService. |
+## 10. Bugs conocidos y deuda técnica
 
 ### 🟡 Medios
 
 | # | Bug | Fix |
 |---|---|---|
-| 4 | Rol `zonal` sin restricción de zona | Definir qué sucursales ve cada zonal o eliminar el rol. |
-| 5 | `irAMiSucursal()` no llama `setMobileTab()` | Agregar `setMobileTab('mn-sucursales')` — 1 línea. |
-| 6 | Doble fetch de juntas al hacer login | Agregar flag `juntasCargadas`. |
-| 7 | `execCommand('copy')` deprecado en `fbCopy()` | Reemplazar con `navigator.clipboard` (ya es primera opción, el fallback casi no se ejecuta). |
-| 8 | KPI cobertura usa solo lecturas locales | Conectar a `getLecturas` del Apps Script. |
+| 1 | Rol `zonal` sin restricción de zona | Definir qué sucursales ve cada zonal o eliminar el rol. |
+| 2 | `irAMiSucursal()` no llama `setMobileTab()` | Agregar `setMobileTab('mn-sucursales')` — 1 línea. |
+| 3 | Doble fetch de juntas al hacer login | Agregar flag `juntasCargadas`. |
+| 4 | KPI cobertura usa solo lecturas locales | Conectar a `getLecturas` del Apps Script. |
 
 ### 🔵 Deuda técnica
 
 | # | Item |
 |---|---|
-| 9 | WhatsApp y correos placeholder en About (`wa.me/523300000000`) — actualizar con reales. |
-| 10 | Color `#2980b9` en KPI TRX no está en la paleta. Cambiar a `--sage`. |
-| 11 | El `rc()` tiene debounce de 400ms — funciona, pero podría bajar a 300ms. |
-
----
-
-## 10. Roadmap
-
-### Fase 3 — Pendiente (no empezar sin discutirlo)
-
-La arquitectura actual (Apps Script + Sheets) soporta bien hasta ~50 gerentes. Cuando el negocio crezca más allá de eso, o se necesite tiempo real real:
-
-- **JWT** para sesiones firmadas criptográficamente.
-- **Firebase / Supabase** como base de datos real (reemplaza Google Sheets).
-- El frontend NO cambia. Solo se reemplaza `Code.gs` por un servidor real y se actualizan las URLs en `config.js`.
-
-### Próximas features (en orden de valor)
-
-| Feature | Descripción |
-|---|---|
-| Dashboard por gerente | Vista filtrada — solo KPIs de su sucursal. Hoy el gerente ve el dashboard completo vacío. |
-| Consolidado auto-poblado | Apps Script parsea nombre del Excel subido (`VentaSemanal_AND_S3.xlsx`) y actualiza el consolidado automáticamente. Elimina el llenado manual. |
-| Newsletter automático | Trigger en Apps Script al crear aviso crítico o minuta — envía email automáticamente. El endpoint ya existe, falta el trigger. |
-| Historial semanal en dashboard | Dropdown para ver consolidados de semanas anteriores. El Sheet ya guarda la columna `semana`. |
-| CRUD de usuarios desde el portal | Agregar, desactivar y cambiar contraseña desde la sección Admin. |
-| Formulario de incidencias | Reporte directo desde Mi Sucursal (merma, ausentismo, incidente) → se guarda en Drive. |
-| Rol Zonal funcional | Mapear cada sucursal a una zona y restringir visibilidad. |
-| Push notifications | SW ya instalado — agregar `push` event para avisos críticos. |
-| Activar CDMX o MTY | Ver sección 4 — solo rellenar los valores en `config.js`. |
+| 5 | WhatsApp y correos placeholder en About — actualizar con reales. |
+| 6 | Color `#2980b9` en KPI TRX no está en la paleta. Cambiar a `--sage`. |
+| 7 | `APPS_SCRIPT_SETUP.md` desactualizado — eliminar o reescribir. |
+| 8 | Archivos huérfanos: `append_crud.js`, `append_html.js`, `refactor.py`, `split.py` — mover a `scripts/archive/` o eliminar. |
 
 ---
 
@@ -352,207 +339,53 @@ La arquitectura actual (Apps Script + Sheets) soporta bien hasta ~50 gerentes. C
 | v0.5.0 | Abr 29 | Dashboard (5 KPIs, gráficas, heatmap, ranking), notifs, bottom nav, juntas, avisos críticos. |
 | v0.5.1 | May 01 | Fixes: persistencia consolidado, seeds críticos, heatmap con lecturas reales. |
 | v0.6.0 | May 01 | Debounce consolidado, empty states dashboard, indicador última actualización. |
-| v0.6.1 | May 02 | Code.gs v2.0: USERS_DB con SHA-256, tokens UUID, sendNewsletterNow, setupHojaInicial. Sheet migrado a PortalGDL_db (`1tje-3xwR...`). PWA: sw.js + manifest. Badge conectividad en login. Cache TTL avisos 5min. Gráfica tendencia con datos reales. |
-| v0.7.0 | May 03 | **Modularización JS:** config.js / api.js / auth.js / ui.js / app.js. **Multi-región:** REGIONES con GDL activa, CDMX y MTY preparadas. SUCURSALES.length dinámico. `api.js` lee URL de la región activa. Título genérico "Portal Operativo LCP". |
-| v0.7.1 | May 05 | **Fixes críticos:** autenticación `hashMatch` sin bypass, `saveAviso` restringido a leadership, `markLeido` guarda usuario real (correo/nombre/sucursal). **Fixes medios:** eliminadas funciones duplicadas en `app.js`, Service Worker cachea todos los módulos JS y pages, umbrales de ticket movidos a `config.js`. |
+| v0.6.1 | May 02 | Code.gs v2.0: USERS_DB SHA-256, tokens UUID, sendNewsletterNow, setupHojaInicial. PWA. Badge conectividad. Cache TTL avisos 5min. |
+| v0.7.0 | May 03 | Modularización JS. Multi-región preparada. `getActiveApiUrl()`. |
+| v0.7.1 | May 05 | `hashMatch` sin bypass. `saveAviso` → `requireLeadership`. `markLeido` guarda usuario real. SW precache completo. Umbrales ticket en `config.js`. |
+| v0.8.0 | May 05 | Dashboard filtrado por sucursal. Fix bypass de token. |
+| v0.8.1 | May 06 | Fix duplicados `AVISOS_CACHE_TTL`/`AVISOS_CACHE_TS_KEY`. `API_URL` global → `getActiveApiUrl()`. |
+| v0.8.2 | May 07 | **Onboarding eliminado.** Login directo visible por defecto. Loader seguro con `_cargarPortalCompleto`. Sin fallback offline. XSS fixes con `sanitizeHtml()`. SW v4 precache completo. Passwords eliminadas de `config.js`. |
 
 ---
 
-## 12. Contexto de decisiones tomadas
-
-Estas decisiones ya se tomaron y no se deben revertir sin discutirlo:
+## 12. Decisiones tomadas — no revertir sin discutir
 
 | Decisión | Razonamiento |
 |---|---|
-| Usuarios NO en Google Sheets | Se eliminó la pestaña Usuarios del Sheet. Vivir en `Code.gs` (USERS_DB) es más seguro y rápido. El Sheet solo guarda datos operativos (avisos, consolidado, juntas, lecturas). |
-| Todos los gerentes comparten contraseña | Decisión pragmática para la fase Beta. El riesgo es la suplantación entre gerentes — aceptable dado que son equipo interno y de confianza. |
-| No usar `DEMO_USERS` = nombre antiguo | Renombrado a `USUARIOS_LOCALES` en v0.7.0. El alias `DEMO_USERS` existe para compatibilidad pero no se debe usar en código nuevo. |
-| GitHub Pages para hosting | Gratuito, sin deploys, funciona con el modelo serverless. La PWA + SW resuelve la disponibilidad offline. |
-| Apps Script como API | Sin costos de servidor, autenticado con la cuenta Google del propietario, acceso nativo a Drive y Sheets. Límite real: 30 ejecuciones concurrentes. Suficiente para las 9-50 sucursales actuales. |
-| No usar módulos ES (`import/export`) | GitHub Pages sirve archivos estáticos. Los módulos ES requieren `type="module"` y cambian el scoping — romperían el patrón de globals que usa todo el código. Se optó por carga secuencial de scripts. |
+| Onboarding eliminado | Era cosmético, no aportaba seguridad y causaba bugs de timing. Login directo es más simple y seguro. |
+| Sin fallback offline de login | Passwords en texto plano en repo público era inaceptable. Toda auth requiere servidor. |
+| Login visible por defecto en HTML | Elimina dependencia de JS para mostrar el login. Si el loader falla, el login siempre está visible. |
+| Pages y app.js no cargan sin sesión | El HTML del portal no debe existir en el DOM sin autenticación. |
+| `iniciarFlujoAuth()` en `ui.js` | Es el único módulo que carga en ambos flujos. `app.js` no está disponible sin sesión. |
+| Usuarios en `Code.gs`, no en Sheet | Más seguro. El Sheet solo guarda datos operativos. |
+| Gerentes comparten contraseña | Pragmático para Beta. Riesgo aceptado. |
+| No usar módulos ES (`import/export`) | Romperían el patrón de globals con GitHub Pages. |
+| Apps Script como API | Sin costo. Límite: 30 ejecuciones concurrentes. Suficiente para 9-50 sucursales. |
+
+---
+
+## 13. Roadmap
+
+### Próximas features (en orden de valor)
+
+| Feature | Descripción |
+|---|---|
+| Dashboard por gerente | Vista filtrada — solo KPIs de su sucursal. |
+| Consolidado auto-poblado | Apps Script parsea el Excel subido y actualiza el consolidado. |
+| Newsletter automático | Trigger al crear aviso crítico — sin intervención manual. |
+| Historial semanal en dashboard | Dropdown para ver semanas anteriores. El Sheet ya guarda `semana`. |
+| Formulario de incidencias | Reporte desde Mi Sucursal → Drive. |
+| Rol Zonal funcional | Mapear sucursales a zonas. |
+| Push notifications | SW instalado — agregar `push` event. |
+| Activar CDMX o MTY | Ver sección 5. |
+
+### Fase futura — discutir antes de empezar
+
+- JWT para sesiones firmadas.
+- Firebase / Supabase como base de datos real.
+- El frontend no cambia — solo se reemplaza `Code.gs` y se actualizan URLs en `config.js`.
 
 ---
 
 *Portal Operativo LCP · La Crêpe Parisienne · Grupo MYT / Corporativo Alancar*  
-*Actualizado: Mayo 2026 · v0.7.0*
-
----
-
-## 13. Bugs verificados en código — OpenCode debe resolver antes de agregar features
-
-> Esta sección fue generada por QA independiente comparando el código fuente real contra el handoff. Todos los bugs están confirmados con número de línea en el repo.
-
-### 🔴 Bug crítico — autenticación rota en producción
-
-**`Code.gs` línea 88 — `hashMatch` acepta cualquier contraseña**
-
-```javascript
-// CÓDIGO ACTUAL (INSEGURO):
-const hashMatch = (user.passhash === hash)
-  || user.passhash.startsWith('f9e9b5b8')
-  || user.passhash.startsWith('a2b3c4d5')
-  || user.passhash.startsWith('c7b5f3e9');
-```
-
-Los tres prefijos son exactamente los hashes de todos los usuarios actuales en `USERS_DB`. Cualquier persona que conozca un correo válido (ej. `oliver@lcp.mx`) puede entrar con cualquier contraseña. El login nunca falla para usuarios registrados.
-
-**Fix:** eliminar las tres condiciones `startsWith`. Dejar solo `user.passhash === hash`.
-
-```javascript
-// CORRECTO:
-const hashMatch = (user.passhash === hash);
-```
-
----
-
-### 🔴 Bug crítico — endpoint `saveAviso` accesible por gerentes
-
-**`Code.gs` línea 187 — permiso incorrecto**
-
-```javascript
-function saveAviso({ id, tag, fecha, autor, texto, token }) {
-  requireGerente(token);  // ← INCORRECTO. Gerentes no deben crear avisos.
-```
-
-`requireGerente` incluye el rol `gerente` además de leadership. Un gerente puede crear, editar y eliminar avisos llamando directamente al endpoint aunque el frontend lo bloquee visualmente.
-
-**Fix:** cambiar `requireGerente(token)` por `requireLeadership(token)` en `saveAviso`.
-
----
-
-### 🟡 Bug medio — panel de lecturas críticas siempre vacío
-
-**`Code.gs` línea 241 — `markLeido` guarda token en lugar de correo**
-
-```javascript
-ss.appendRow([avisoId, token, new Date().toISOString()]);
-// La Sheet Lecturas espera: avisoId | userCorreo | userNombre | userSucursal | timestamp
-// Pero se está guardando: avisoId | tokenUUID | timestamp (solo 3 columnas)
-```
-
-El panel Admin intenta mostrar `userNombre` y `userSucursal` de cada lectura, pero esos campos son `undefined` porque nunca se guardaron. El registro de auditoría existe pero es ilegible.
-
-**Fix:** resolver el token a su usuario en `markLeido` antes de guardar:
-
-```javascript
-function markLeido({ avisoId, token }) {
-  const session = getSession(token);  // resuelve token → usuario
-  if (!session) throw new Error('Sesión inválida');
-  const { correo, nombre, sucursal } = session;
-  // ... deduplicar por correo, no por token ...
-  ss.appendRow([avisoId, correo, nombre, sucursal, new Date().toISOString()]);
-}
-```
-
----
-
-### 🟡 Bug medio — funciones duplicadas entre módulos
-
-**`app.js` líneas 109 y 156 / `ui.js` líneas 32 y 83**
-
-`showSection()` e `irAMiSucursal()` están definidas en ambos archivos. La de `ui.js` sobrescribe a la de `app.js` porque se carga después (orden en `index.html`: `ui.js` → `app.js` — espera, `app.js` se carga último y sobrescribe a `ui.js`).
-
-**Canónica:** la de `ui.js` es la correcta — tiene el guard de `currentUser`. La de `app.js` no tiene ese guard.
-
-**Fix:** eliminar `showSection()` e `irAMiSucursal()` de `app.js`. Dejar solo las de `ui.js`.
-
-> ⚠️ Verificar el orden de carga en `index.html` antes de tocar esto. Si `app.js` se carga después de `ui.js`, la de `app.js` es la que está activa actualmente — y es la versión sin guard.
-
----
-
-### 🟡 Bug medio — `pages/` se carga dinámicamente: editar ahí, no en `index.html`
-
-Las secciones del portal usan `data-page="pages/nombre.html"` y se cargan en runtime:
-
-```html
-<section id="inicio" class="section active" data-page="pages/inicio.html"></section>
-<section id="dashboard" class="section" data-page="pages/dashboard.html"></section>
-<!-- etc. -->
-```
-
-**Regla crítica para OpenCode:** cualquier cambio de HTML en las secciones (inicio, dashboard, sucursales, regional, juntas, formatos, admin-section, about) se hace en `pages/nombre.html`, NO en `index.html`. Editar `index.html` para cambiar contenido de secciones no tiene efecto.
-
-La única sección que no usa `data-page` es la del login — esa sí vive en `index.html`.
-
----
-
-### 🟡 Bug medio — Service Worker no cachea los módulos JS
-
-**`sw.js` — array `ASSETS` incompleto**
-
-```javascript
-const ASSETS = [
-  '/ultima_parisienne/',
-  '/ultima_parisienne/index.html',
-  '/ultima_parisienne/css/style.css',
-  '/ultima_parisienne/js/app.js',   // ← solo app.js
-  // falta: config.js, api.js, auth.js, ui.js, todos los pages/
-];
-```
-
-Si el portal carga offline, los módulos `config.js`, `api.js`, `auth.js` y `ui.js` no están en caché. El portal falla completamente con `ReferenceError` aunque el service worker esté instalado.
-
-**Fix:** agregar al array `ASSETS`:
-```javascript
-'/ultima_parisienne/js/config.js',
-'/ultima_parisienne/js/api.js',
-'/ultima_parisienne/js/auth.js',
-'/ultima_parisienne/js/ui.js',
-'/ultima_parisienne/pages/inicio.html',
-'/ultima_parisienne/pages/dashboard.html',
-'/ultima_parisienne/pages/sucursales.html',
-'/ultima_parisienne/pages/regional.html',
-'/ultima_parisienne/pages/juntas.html',
-'/ultima_parisienne/pages/formatos.html',
-'/ultima_parisienne/pages/admin-section.html',
-'/ultima_parisienne/pages/about.html',
-```
-
----
-
-### 🔵 Deuda técnica — umbrales del semáforo de ticket no configurables
-
-**`app.js` líneas 706-707**
-
-```javascript
-if(ticket >= 150) tend = '🟢 Alza';
-else if(ticket >= 135) tend = '🟡 Estable';
-else tend = '🔴 Baja';
-```
-
-Umbrales hardcodeados. Si el ticket promedio real de LCP está en un rango distinto, todas las sucursales aparecen en rojo permanentemente. Ibrahim debe confirmar cuáles son los valores reales antes de que OpenCode los deje intactos o los modifique.
-
-**Fix sugerido:** mover a `config.js`:
-```javascript
-TICKET_UMBRALES: { verde: 150, amarillo: 135 }
-```
-
----
-
-### ✅ Estado de los 7 puntos del QA anterior — verificado en código real (Mayo 2026)
-
-| # | Punto | Estado verificado |
-|---|---|---|
-| 1 | `hashMatch` con `startsWith` — bypass de auth | ✅ **Resuelto** — `Code.gs` línea 88: solo `===` |
-| 2 | `saveAviso` usa `requireGerente` en lugar de `requireLeadership` | ✅ **Resuelto** — `Code.gs` línea 187: `requireLeadership(token)` |
-| 3 | `markLeido` guarda token en lugar de correo | ✅ **Resuelto** — `Code.gs` líneas 231-253: guarda correo/nombre/sucursal |
-| 4 | Funciones duplicadas `showSection` / `irAMiSucursal` | ✅ **Resuelto** — ambas viven solo en `ui.js` (líneas 32 y 83) |
-| 5 | `pages/` — estado ambiguo (¿dinámico o residual?) | ✅ **Resuelto** — confirmado dinámico via `data-page` |
-| 6 | Service Worker no cachea todos los módulos JS | ✅ **Resuelto** — `sw.js` líneas 9-21: ASSETS incluye todos los módulos y pages/ |
-| 7 | Umbrales semáforo hardcodeados | ✅ **Resuelto** — `app.js` usa `TICKET_UMBRALES.verde` / `.amarillo` de `config.js` |
-
-**7 de 7 resueltos.** Auditoría realizada contra código fuente real el 5 de mayo de 2026.
-
----
-
-### ✅ Bug bypass de token en modo dev (Resuelto)
-
-**`Code.gs` línea 121 — `requireRole` acepta correo como token válido**
-
-Este bug introducido intencionalmente para el modo *fallback offline* fue solucionado en la ejecución de la Fase 3. 
-
-**Fix implementado:** 
-- En `api.js` y `auth.js`, cuando el login es offline, se envía y guarda un marcador neutral estricto (`'offline_demo'`). 
-- En `Code.gs`, la vulnerabilidad de `token.includes('@')` fue cerrada, validando estrictamente por `token === 'offline_demo'`.
-
-Con esto, los endpoints POST quedan protegidos contra manipulaciones basadas en inyección de correos conocidos, preservando la compatibilidad del frontend.
+*Actualizado: Mayo 2026 · v0.8.2*
