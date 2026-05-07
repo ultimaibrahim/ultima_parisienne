@@ -59,9 +59,12 @@ body {
   background:var(--bg);
   color:var(--text);
   min-height:100vh;
+  display:flex;
+  flex-direction:column;
   transition:background .3s,color .3s;
   -webkit-font-smoothing:antialiased;
 }
+#main-content { flex:1; }
 
 /* ══ ONBOARDING ══════════════════════════════════════════════ */
 #onboarding {
@@ -255,14 +258,14 @@ main{max-width:1240px;margin:0 auto;padding:32px 28px;}
 .aviso-tag{display:inline-block;background:var(--crema-dark);color:var(--verde);font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.04em;}
 [data-theme="dark"] .aviso-tag{background:rgba(122,158,138,.2);color:var(--sage);}
 .aviso-fecha-txt{font-size:10px;color:var(--text-muted);}
-.aviso-critico-marker{display:inline-block;background:#c62828;color:white;font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.06em;animation:pulse 1.5s infinite;}
+.aviso-critico-marker{display:inline-block;background:#c62828;color:white;font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.06em;}
 .aviso-leido-row{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--card-border);flex-wrap:wrap;}
 .btn-marcar-leido{padding:7px 15px;background:var(--verde);color:var(--crema);border:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;display:inline-flex;align-items:center;gap:6px;}
 .btn-marcar-leido:hover{background:var(--verde-light);}
 .btn-marcar-leido.leido{background:var(--sage-pale);color:#2e7d32;cursor:default;}
 [data-theme="dark"] .btn-marcar-leido.leido{background:#0f2a14;color:#9ed4a8;}
 .aviso-leido-meta{font-size:11px;color:var(--text-muted);}
-.aviso-nuevo{display:inline-block;background:#7dffb0;color:var(--verde-deep);font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.06em;animation:pulse 2.5s infinite;}
+.aviso-nuevo{display:inline-block;background:#7dffb0;color:var(--verde-deep);font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.06em;}
 .avisos-nuevos-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(125,255,176,.18);color:#7dffb0;font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;letter-spacing:.04em;}
 .avisos-nuevos-pill.hidden{display:none;}
 .aviso-vence{display:inline-block;background:var(--amber-pale);color:var(--amber);font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.04em;}

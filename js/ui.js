@@ -84,8 +84,15 @@ function toggleNotifDropdown(e) {
 }
 
 /* ── Notificaciones ───────────────────────────────────────── */
-function getNotifs()       { try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); } catch { return []; } }
-function saveNotifs(arr)   { localStorage.setItem(NOTIF_KEY, JSON.stringify(arr.slice(0, 20))); }
+// La clave de notificaciones es por usuario para evitar que se mezclen
+// entre sesiones de distintos usuarios en el mismo dispositivo.
+function getNotifKey() {
+  const correo = (typeof currentUser !== 'undefined' && currentUser?.correo) ? currentUser.correo : 'shared';
+  return NOTIF_KEY + '_' + correo.replace(/[^a-z0-9]/gi, '_');
+}
+function getNotifs()       { try { return JSON.parse(localStorage.getItem(getNotifKey()) || '[]'); } catch { return []; } }
+function saveNotifs(arr)   { localStorage.setItem(getNotifKey(), JSON.stringify(arr.slice(0, 20))); }
+function clearNotifs()     { localStorage.removeItem(getNotifKey()); }
 function pushNotif(titulo, texto) {
   const arr = getNotifs();
   arr.unshift({ id: Date.now(), titulo, texto, ts: Date.now(), leida: false });

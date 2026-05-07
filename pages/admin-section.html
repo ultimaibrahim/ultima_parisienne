@@ -1,9 +1,5 @@
 <div class="section-title anim anim-1">Administración</div>
     <div class="section-desc anim anim-2">Gestión de avisos, usuarios y bitácora. Solo visible para leadership regional.</div>
-    <div class="notice notice-warn anim anim-2">
-      <span class="notice-icon">⚠️</span>
-      <div>Los cambios en avisos se guardan en localStorage. Para sincronización real, conecta el Apps Script.</div>
-    </div>
 
     <div class="table-wrap anim anim-3">
       <div class="table-header">
@@ -32,12 +28,21 @@
       </div>
     </div>
 
-
-
     <div class="anim anim-4" style="margin-top:24px;">
       <button class="changelog-toggle" onclick="toggleChangelog()" data-testid="changelog-toggle">⚙ DEBUG · Changelog — Portal GDL</button>
       <div class="changelog-panel" id="changelog-panel">
       <div class="changelog-title">// historial de versiones — modo debug · Portal GDL · Beta</div>
+      <div class="changelog-version">
+        <div class="changelog-ver-num">v0.9.0</div>
+        <div class="changelog-ver-date">07 may 2026 — UX, Bugs Críticos y Limpieza</div>
+        <div class="changelog-item fix">Refresh ya no devuelve al login (guard en kickoff de app.js)</div>
+        <div class="changelog-item fix">Badge CRÍTICO/NUEVO visibles correctamente para gerentes</div>
+        <div class="changelog-item fix">Avisos duplicados prevenidos (guard _guardandoAviso)</div>
+        <div class="changelog-item fix">Notificaciones ahora son por usuario — no se mezclan entre sesiones</div>
+        <div class="changelog-item change">Footer siempre al fondo de la página (flex layout en body)</div>
+        <div class="changelog-item change">Badges CRÍTICO y NUEVO sin animación de parpadeo</div>
+        <div class="changelog-item change">Eliminados avisos obsoletos de "conecta Apps Script"</div>
+      </div>
       <div class="changelog-version">
         <div class="changelog-ver-num">v0.8.5</div>
         <div class="changelog-ver-date">07 may 2026 — Limpieza de dead code y comments</div>
@@ -78,55 +83,55 @@
         <div class="changelog-item new">Precache completo en Service Worker para funcionamiento offline</div>
       </div>
       <div class="changelog-version">
-          <div class="changelog-ver-num">v0.8.0</div>
-          <div class="changelog-ver-date">05 may 2026 — Fase 3: Seguridad y Automatización</div>
-          <div class="changelog-item new">Dashboard filtrado por sucursal para gerentes</div>
-          <div class="changelog-item new">CRUD de usuarios completo en panel Admin</div>
-          <div class="changelog-item new">Auto-poblado inteligente de semana desde nombre de archivo</div>
-          <div class="changelog-item new">Newsletter automático al crear avisos críticos o juntas</div>
-          <div class="changelog-item fix">Cierre de bypass de token en modo offline (marcador estricto)</div>
-        </div>
-        <div class="changelog-version">
-          <div class="changelog-ver-num">v0.6.0</div>
-          <div class="changelog-ver-date">01 may 2026 — Debounce y Empty States</div>
-          <div class="changelog-item fix">Función de Debounce en el Consolidado Regional</div>
-          <div class="changelog-item new">Empty States en Dashboard</div>
-          <div class="changelog-item new">Indicador de Última Actualización en dashboard y consolidado</div>
-        </div>
-        <div class="changelog-version">
-          <div class="changelog-ver-num">v0.5.1</div>
-          <div class="changelog-ver-date">01 may 2026 — Fixes inmediatos y persistencia de tabla</div>
-          <div class="changelog-item fix">Persistencia local del consolidado regional con localStorage</div>
-          <div class="changelog-item fix">Avisos seed actualizados (fechas y flag crítico)</div>
-          <div class="changelog-item fix">Heatmap modificado para usar lecturas reales en lugar de random()</div>
-          <div class="changelog-item fix">Señalización de datos de contacto pendientes en About</div>
-        </div>
-        <div class="changelog-version">
-          <div class="changelog-ver-num">v0.5.0</div>
-          <div class="changelog-ver-date">29 abr 2026 — Dashboard + Notificaciones + Mobile nav</div>
-          <div class="changelog-item new">Dashboard completo: 5 KPIs (entregas, avance vs meta, ticket prom, TRX, cobertura críticos)</div>
-          <div class="changelog-item new">Gráfica venta vs meta por sucursal (Chart.js)</div>
-          <div class="changelog-item new">Gráfica de dona — cumplimiento de entregas</div>
-          <div class="changelog-item new">Tendencia de venta neta últimas 6 semanas</div>
-          <div class="changelog-item new">Heatmap de lecturas de avisos críticos por sucursal</div>
-          <div class="changelog-item new">Ranking de sucursales por % avance vs meta</div>
-          <div class="changelog-item new">Campana de notificaciones en header con dropdown</div>
-          <div class="changelog-item new">Bottom navigation para móvil (gerentes en celular)</div>
-          <div class="changelog-item change">Rediseño visual: bordes más redondeados, sombras de color, mejores transiciones</div>
-          <div class="changelog-item change">Tokens CSS refinados: sage-pale, amber-pale, rojo-pale, radius tokens</div>
-        </div>
-        <div class="changelog-version">
-          <div class="changelog-ver-num">v0.4.0</div>
-          <div class="changelog-ver-date">29 abr 2026 — backend Apps Script + confirmación de lectura</div>
-          <div class="changelog-item new">Backend Apps Script completo (Code.gs)</div>
-          <div class="changelog-item new">Avisos críticos con confirmación de lectura</div>
-          <div class="changelog-item new">Newsletter automático y manual</div>
-          <div class="changelog-item new">Token de sesión emitido por backend (7 días)</div>
-        </div>
-        <div class="changelog-version">
-          <div class="changelog-ver-num">v0.3.0 — v0.1.0</div>
-          <div class="changelog-ver-date">28–29 abr 2026</div>
-          <div class="changelog-item new">Auth, roles, onboarding, dark mode, carrusel, admin panel, histórico, formatos</div>
-        </div>
+        <div class="changelog-ver-num">v0.8.0</div>
+        <div class="changelog-ver-date">05 may 2026 — Fase 3: Seguridad y Automatización</div>
+        <div class="changelog-item new">Dashboard filtrado por sucursal para gerentes</div>
+        <div class="changelog-item new">CRUD de usuarios completo en panel Admin</div>
+        <div class="changelog-item new">Auto-poblado inteligente de semana desde nombre de archivo</div>
+        <div class="changelog-item new">Newsletter automático al crear avisos críticos o juntas</div>
+        <div class="changelog-item fix">Cierre de bypass de token en modo offline (marcador estricto)</div>
+      </div>
+      <div class="changelog-version">
+        <div class="changelog-ver-num">v0.6.0</div>
+        <div class="changelog-ver-date">01 may 2026 — Debounce y Empty States</div>
+        <div class="changelog-item fix">Función de Debounce en el Consolidado Regional</div>
+        <div class="changelog-item new">Empty States en Dashboard</div>
+        <div class="changelog-item new">Indicador de Última Actualización en dashboard y consolidado</div>
+      </div>
+      <div class="changelog-version">
+        <div class="changelog-ver-num">v0.5.1</div>
+        <div class="changelog-ver-date">01 may 2026 — Fixes inmediatos y persistencia de tabla</div>
+        <div class="changelog-item fix">Persistencia local del consolidado regional con localStorage</div>
+        <div class="changelog-item fix">Avisos seed actualizados (fechas y flag crítico)</div>
+        <div class="changelog-item fix">Heatmap modificado para usar lecturas reales en lugar de random()</div>
+        <div class="changelog-item fix">Señalización de datos de contacto pendientes en About</div>
+      </div>
+      <div class="changelog-version">
+        <div class="changelog-ver-num">v0.5.0</div>
+        <div class="changelog-ver-date">29 abr 2026 — Dashboard + Notificaciones + Mobile nav</div>
+        <div class="changelog-item new">Dashboard completo: 5 KPIs (entregas, avance vs meta, ticket prom, TRX, cobertura críticos)</div>
+        <div class="changelog-item new">Gráfica venta vs meta por sucursal (Chart.js)</div>
+        <div class="changelog-item new">Gráfica de dona — cumplimiento de entregas</div>
+        <div class="changelog-item new">Tendencia de venta neta últimas 6 semanas</div>
+        <div class="changelog-item new">Heatmap de lecturas de avisos críticos por sucursal</div>
+        <div class="changelog-item new">Ranking de sucursales por % avance vs meta</div>
+        <div class="changelog-item new">Campana de notificaciones en header con dropdown</div>
+        <div class="changelog-item new">Bottom navigation para móvil (gerentes en celular)</div>
+        <div class="changelog-item change">Rediseño visual: bordes más redondeados, sombras de color, mejores transiciones</div>
+        <div class="changelog-item change">Tokens CSS refinados: sage-pale, amber-pale, rojo-pale, radius tokens</div>
+      </div>
+      <div class="changelog-version">
+        <div class="changelog-ver-num">v0.4.0</div>
+        <div class="changelog-ver-date">29 abr 2026 — backend Apps Script + confirmación de lectura</div>
+        <div class="changelog-item new">Backend Apps Script completo (Code.gs)</div>
+        <div class="changelog-item new">Avisos críticos con confirmación de lectura</div>
+        <div class="changelog-item new">Newsletter automático y manual</div>
+        <div class="changelog-item new">Token de sesión emitido por backend (7 días)</div>
+      </div>
+      <div class="changelog-version">
+        <div class="changelog-ver-num">v0.3.0 — v0.1.0</div>
+        <div class="changelog-ver-date">28–29 abr 2026</div>
+        <div class="changelog-item new">Auth, roles, onboarding, dark mode, carrusel, admin panel, histórico, formatos</div>
+      </div>
       </div>
     </div>

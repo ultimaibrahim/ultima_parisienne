@@ -122,6 +122,7 @@ async function doLogin() {
 
 function doLogout() {
   cerrarUserMenu();
+  clearNotifs(); // limpiar notificaciones de este usuario en este dispositivo
   localStorage.removeItem(SESS_KEY);
   localStorage.removeItem(TOKEN_KEY);
   currentUser = null;

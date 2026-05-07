@@ -386,18 +386,26 @@ function mostrarFormAdmin(idx){
   const addBtn=document.createElement('button');addBtn.className='admin-tab-btn admin-tab-add'+(idx===-1?' active':'');addBtn.textContent=idx===-1?'+ Nuevo (sin guardar)':'+ Nuevo';addBtn.onclick=()=>mostrarFormAdmin(-1);tabs.appendChild(addBtn);
   $('admin-aviso-delete-wrap').style.display=idx===-1?'none':'';
 }
+let _guardandoAviso = false;
 async function guardarAviso() {
+  if (_guardandoAviso) return; // prevenir doble guardado
+  _guardandoAviso = true;
+  const btnGuardar = document.getElementById('btn-guardar-aviso');
+  if (btnGuardar) { btnGuardar.disabled = true; btnGuardar.textContent = 'Guardando…'; }
+
   const data = {
     tag:          $('af-tag').value.trim(),
     fecha:        $('af-fecha').value.trim(),
     texto:        $('af-texto').value.trim(),
-    fechalimite:  $('af-fecha-limite').value || '',   // Sincronizado con Code.gs
-    fechaborrado: $('af-fecha-borrado').value || '', // Sincronizado con Code.gs
+    fechalimite:  $('af-fecha-limite').value || '',
+    fechaborrado: $('af-fecha-borrado').value || '',
     critico:      $('af-critico').checked
   };
   
   if (!data.tag && !data.texto) { 
-    mostrarToast('⚠️ El aviso necesita al menos una etiqueta o texto.'); 
+    mostrarToast('⚠️ El aviso necesita al menos una etiqueta o texto.');
+    _guardandoAviso = false;
+    if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.textContent = 'Guardar'; }
     return; 
   }
 
@@ -412,12 +420,14 @@ async function guardarAviso() {
   saveAvisos();
 
   if (getActiveApiUrl()) {
-    const r = await apiCall('saveAviso', nuevoAviso); 
-    if (r.ok && r.aviso) {
-      const i = avisos.findIndex(a => a.id === r.aviso.id);
-      if (i >= 0) avisos[i] = r.aviso;
-      saveAvisos();
-    }
+    try {
+      const r = await apiCall('saveAviso', nuevoAviso); 
+      if (r.ok && r.aviso) {
+        const i = avisos.findIndex(a => a.id === r.aviso.id);
+        if (i >= 0) avisos[i] = r.aviso;
+        saveAvisos();
+      }
+    } catch(e) { console.warn('[guardarAviso] Error en API:', e); }
   }
 
   $('admin-overlay').classList.remove('visible');
@@ -426,6 +436,8 @@ async function guardarAviso() {
   renderAdminAvisos();
   mostrarToast('✓ Aviso guardado');
   if (!avHovered) iniciarAutoplay();
+  _guardandoAviso = false;
+  if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.textContent = 'Guardar'; }
 }
 function pedirConfirmarBorrar(){if(adminAvisoIdx===-1||adminAvisoIdx>=avisos.length)return;adminPendingDelete=true;$('admin-aviso-delete').style.display='none';$('admin-aviso-delete-confirm').style.display='';$('admin-aviso-delete-cancel').style.display='';}
 function cancelarConfirmarBorrar(){resetDeleteBtn();}
@@ -849,7 +861,10 @@ $('stat-version').textContent = VERSION;
 $('footer-ver').textContent   = VERSION + '-beta · Portal LCP · 2026';
 
 /* ── KICKOFF ──────────────────────────────────────────────── */
-ocultarPortal();
+// Solo ocultar el portal si NO hay sesión activa.
+// Si currentUser ya fue restaurado por iniciarFlujoAuth (ui.js),
+// ocultarlo aquí borraría lo que aplicarRoles() ya mostró → pantalla en blanco.
+if (!currentUser) ocultarPortal();
 cargarAvisos();
 cargarConsolidadoLocal();
 

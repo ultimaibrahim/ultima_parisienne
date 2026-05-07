@@ -56,7 +56,7 @@
 <div class="admin-overlay" id="admin-overlay" onclick="cerrarAdmin(event)" role="dialog" aria-label="Editor de avisos">
   <div class="admin-panel" onclick="event.stopPropagation()">
     <div class="admin-title">Editor de avisos</div>
-    <div class="admin-sub">Crea, edita o elimina avisos. Los cambios se guardan localmente hasta conectar Apps Script.</div>
+    <div class="admin-sub">Crea, edita o elimina avisos. Los cambios se sincronizan con el servidor.</div>
     <div class="admin-form-view visible" id="admin-form">
       <div class="admin-tab-bar" id="admin-aviso-tabs"></div>
       <div id="admin-form-body">
@@ -92,7 +92,7 @@
         <div style="font-size:11px;color:var(--text-muted);margin-top:-8px;">El aviso se mueve al histórico al llegar la fecha de archivado.</div>
       </div>
       <div class="admin-actions">
-        <button class="admin-btn-save" onclick="guardarAviso()" data-testid="admin-aviso-save">Guardar aviso</button>
+        <button class="admin-btn-save" id="btn-guardar-aviso" onclick="guardarAviso()" data-testid="admin-aviso-save">Guardar aviso</button>
         <span id="admin-aviso-delete-wrap" style="display:contents;">
           <button class="admin-btn-delete" id="admin-aviso-delete" onclick="pedirConfirmarBorrar()" data-testid="admin-aviso-delete">Eliminar</button>
           <button class="admin-btn-delete" id="admin-aviso-delete-confirm" onclick="confirmarBorrarModal()" style="display:none;background:var(--rojo-soft);color:white;border-color:var(--rojo-soft);" data-testid="admin-aviso-delete-confirm">✓ Confirmar borrar</button>
