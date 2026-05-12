@@ -1,25 +1,71 @@
-# wrangler files (Cloudflare Workers)
-.wrangler
-.dev.vars*
-!.dev.vars.example
-.env*
-!.env.example
-
-# IDE
+# Editor / IDE
 .vscode/
 .idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.cursor/
 
-# OS
+# OS / System
 .DS_Store
+.AppleDouble
+.LSOverride
+Icon\r\r
+._*
+.Spotlight-V100
+.Trashes
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*
+!.env.example
+.dev.vars*
+!.dev.vars.example
 
 # Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Node (si se agrega alguna herramienta local)
+# Node / JS
 node_modules/
 package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# Temp
+# Temp & Cache
+.cache/
+tmp/
+temp/
+.temp/
 *.tmp
 *.swp
+
+# Python (for archive scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Google Apps Script
+.clasp.json
+Code.gs
+
+# Cloudflare Workers
+.wrangler/
+
+# Documentación y Scripts Internos
+PORTAL_GDL_HANDOFF.md
+scripts/
+.agents/
