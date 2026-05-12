@@ -391,6 +391,7 @@ Los Drive IDs completos están en `SUCURSAL_DATA_POR_REGION.GDL` en `config.js`.
 | v0.8.6 | May 07 | **Fixes de seguridad críticos:** `requireRole` ahora valida rol contra `allowedRoles`. `setEntrega` y `uploadFile` ahora requieren autenticación. `saveJunta` ya no dispara newsletter. SW scope relativo. |
 | v0.9.0 | May 12 | **Auditoría UX/UI Senior:** Unificación de criterios de diseño entre Portal y Dashboard de Reseñas. Mapeo de componentes y paleta extendida. |
 | v0.9.1 | May 12 | **Optimización UX Dashboard:** Reordenamiento de jerarquía (alertas primero), logo clicable, affordance en cards (hover/arrow) y limpieza de listas de incidencias. |
+| v0.9.2 | May 12 | **Refactorización Reviews Dashboard:** Eliminado Explorador de Reseñas. Alertas con modales dinámicos y bloque de "Lo más destacado". `branch.js` totalmente reescrito con selector dinámico de mes y algoritmos de insights automáticos. Fix en topbar y barras métricas. |
 
 
 ---
